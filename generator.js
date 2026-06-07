@@ -140,6 +140,9 @@ function makeFieldMotif(m, G){
     }
   }
   applyCenter(g, c, G.centerStyle, G.layers[0].slot);
+  // non-empty floor: never return a fully blank motif
+  let any=false; for(const r of g){ for(const v of r){ if(v){any=true;break;} } if(any)break; }
+  if(!any) g[c][c]=G.layers[0].slot;
   return g;
 }
 
