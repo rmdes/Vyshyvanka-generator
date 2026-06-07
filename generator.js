@@ -186,18 +186,23 @@ function pickSource(r, tr, hasHero){
   return 'archetype';
 }
 function genomeForCFG(m){
-  const aim={ornate:CFG.dens, wild:CFG.variety, tradition:CFG.tradition, symmetry:CFG.symmetry};
-  const base=sampleGenome(CFG.P, aim);
-  return CFG.lab ? mergeGenome(base, CFG.lab) : base;
+  // A pinned Lab genome is a THEME: each motif DEVIATES from it (scaled by Variation/Calm<->Wild),
+  // so the slots form a coherent family — identical at Calm, a varied family toward Wild.
+  if(CFG.lab) return varyGenome(CFG.lab, CFG.variety);
+  return sampleGenome(CFG.P, {ornate:CFG.dens, wild:CFG.variety, tradition:CFG.tradition, symmetry:CFG.symmetry});
 }
-// merge partial lab overrides onto a sampled genome (overridden fields win)
-function mergeGenome(base, lab){
-  const out={ sym: lab.sym||base.sym, levels: lab.levels||base.levels,
-              centerStyle: lab.centerStyle||base.centerStyle, layers: base.layers.map(l=>({...l})) };
-  if(Array.isArray(lab.layers)){
-    out.layers = lab.layers.map((lo,i)=>({ ...(base.layers[i]||base.layers[0]), ...lo }));
-  }
-  return out;
+// per-motif variation around a pinned genome; keeps coord/wave/colour (the family's character),
+// jitters the geometry (freq/phase/weight/levels) by an amount scaled by `wild` (0 = identical).
+function varyGenome(lab, wild){
+  const j=(amt)=>(RNG()*2-1)*amt*wild;
+  const layers=(lab.layers||[]).map(L=>({
+    coord:L.coord, wave:L.wave, slot:L.slot,
+    freq:Math.max(0.3, L.freq*(1+j(0.5))),
+    phase:L.phase + j(0.5),
+    weight:Math.max(0.1, L.weight*(1+j(0.5)))
+  }));
+  return { sym:lab.sym||CFG.symmetry, layers,
+           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot" };
 }
 function pickMotif(m){
   const tr=CFG.tradition, pool=heroForRegion(CFG.region);
