@@ -84,40 +84,49 @@ function generate(updateHash=true){
   });
   const seedNum = VY.gen.hashStr(state.seed);
   VY.app._lastTile=null;
+  let piece, exp;
   if(state.mode==="wallpaper"&&state.layout==="fabric"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
     const tileModel=VY.gen.composeFabricTile(state.scale);
     const base={small:5,medium:8,large:12}[state.scale];
     const cell=Math.max(4,Math.round(base*H/1080));
+    const pcols=Math.round(W/cell), prows=Math.round(H/cell);
     const tileCanvas=VY.render.buildTileCanvas(tileModel,cell,state.style,seedNum);
-    VY.cv.width=W;VY.cv.height=H;VY.ctx.setTransform(1,0,0,1,0,0);
-    VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
-    VY.render.fillPattern(W,H,tileCanvas);
-    VY.render.fitPreview(W,H);
-    VY.app._lastTile=tileCanvas;
-    VY.app._lastModel=tileModel;
+    exp=document.createElement("canvas"); exp.width=W; exp.height=H;
+    const eg=exp.getContext("2d"); eg.fillStyle=P.bg; eg.fillRect(0,0,W,H);
+    const pat=eg.createPattern(tileCanvas,"repeat"); eg.fillStyle=pat; eg.fillRect(0,0,W,H);
+    VY.app._lastTile=tileCanvas; VY.app._lastModel=tileModel;
+    piece={cols:pcols, rows:prows, bg:P.bg,
+           rasterAtCell:(cl)=>VY.render.rasterSeamless(tileModel,pcols,prows,cl,state.style,seedNum,P.bg)};
     document.getElementById("dims").textContent=`${W}×${H}px · seamless tile ${tileModel.cols}×${tileModel.rows}`;
   }else if(state.mode==="wallpaper"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
     const model=VY.gen.composeWallpaper(W,H,state.layout,state.scale);
-    VY.cv.width=W;VY.cv.height=H;VY.ctx.setTransform(1,0,0,1,0,0);
-    VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
+    exp=document.createElement("canvas"); exp.width=W; exp.height=H;
+    const eg=exp.getContext("2d"); eg.fillStyle=P.bg; eg.fillRect(0,0,W,H);
     const ox=Math.round((W-model.cols*model.cell)/2),oy=Math.round((H-model.rows*model.cell)/2);
-    VY.render.drawGrid(model,model.cell,ox,oy,state.style,seedNum);
-    VY.render.fitPreview(W,H);
+    VY.render.setCtx(eg); VY.render.drawGrid(model,model.cell,ox,oy,state.style,seedNum); VY.render.setCtx(VY.ctx);
     VY.app._lastModel=model;
+    piece={cols:model.cols, rows:model.rows, bg:P.bg,
+           rasterAtCell:(cl)=>VY.render.buildTileCanvas(model,cl,state.style,seedNum)};
     document.getElementById("dims").textContent=`${W}×${H}px · ${model.cols}×${model.rows} stitches`;
   }else{
     const model=VY.gen.composePanel(state.shape);
     const cell=Math.max(3,Math.min(22,Math.floor(Math.min(720/model.cols,720/model.rows))));
     const W=model.cols*cell,H=model.rows*cell;
-    VY.cv.width=W*dpr;VY.cv.height=H*dpr;VY.ctx.setTransform(dpr,0,0,dpr,0,0);
-    VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
-    VY.render.drawGrid(model,cell,0,0,state.style,seedNum);
-    VY.render.fitPreview(W,H);
+    exp=document.createElement("canvas"); exp.width=W*dpr; exp.height=H*dpr;
+    const eg=exp.getContext("2d"); eg.setTransform(dpr,0,0,dpr,0,0); eg.fillStyle=P.bg; eg.fillRect(0,0,W,H);
+    VY.render.setCtx(eg); VY.render.drawGrid(model,cell,0,0,state.style,seedNum); VY.render.setCtx(VY.ctx);
     VY.app._lastModel=model;
+    piece={cols:model.cols, rows:model.rows, bg:P.bg,
+           rasterAtCell:(cl)=>VY.render.buildTileCanvas(model,cl,state.style,seedNum)};
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
+  VY.app._exportCanvas=exp; VY.app._piece=piece;
+  // (temporary) keep today's on-screen behavior: blit the export canvas to #cv
+  VY.cv.width=exp.width; VY.cv.height=exp.height; VY.ctx.setTransform(1,0,0,1,0,0);
+  VY.ctx.drawImage(exp,0,0);
+  VY.render.fitPreview(exp.width,exp.height);
   if(updateHash)writeHash();
 }
 
@@ -146,7 +155,7 @@ document.getElementById("seed").onchange=e=>{state.seed=e.target.value.trim()||"
 document.getElementById("gen").onclick=()=>{state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_${state.mode==="wallpaper"?state.layout+"_"+state.res:state.shape}_${state.seed}.png`;
-  a.href=VY.cv.toDataURL("image/png");a.click();};
+  a.href=(VY.app._exportCanvas||VY.cv).toDataURL("image/png");a.click();};
 document.getElementById("share").onclick=async()=>{writeHash();const btn=document.getElementById("share");
   try{await navigator.clipboard.writeText(location.href);btn.textContent="Copied!";setTimeout(()=>btn.textContent="🔗 Copy share link",1200);}
   catch{prompt("Share link:",location.href);}};

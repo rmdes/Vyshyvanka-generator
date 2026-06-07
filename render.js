@@ -73,6 +73,15 @@ function fillPattern(W,H,tileCanvas){
   const p=ctx.createPattern(tileCanvas,"repeat");
   ctx.fillStyle=p; ctx.fillRect(0,0,W,H);
 }
+// raster a seamless wallpaper piece of (pcols x prows) stitches at a given cell,
+// by tiling the seamless tile (rendered at that cell) across an offscreen canvas
+function rasterSeamless(tileModel, pcols, prows, cell, style, seedNum, bg){
+  const tile=buildTileCanvas(tileModel, cell, style, seedNum);
+  const c=document.createElement("canvas"); c.width=pcols*cell; c.height=prows*cell;
+  const g=c.getContext("2d"); g.fillStyle=bg; g.fillRect(0,0,c.width,c.height);
+  const p=g.createPattern(tile,"repeat"); g.fillStyle=p; g.fillRect(0,0,c.width,c.height);
+  return c;
+}
 
 /* ===================== counted-stitch chart ===================== */
 const CHART_SYMBOLS = ["✚","◆","▲","●","■","✖","★","◐","◢","✦","◇","▼"];
@@ -109,4 +118,4 @@ function renderChart(model){
   return c;
 }
 
-VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx, renderChart };
+VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx, renderChart, rasterSeamless };
