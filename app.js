@@ -200,16 +200,17 @@ function buildLabLayers(G){
   const host=document.getElementById("labLayers"); host.innerHTML="";
   G.layers.forEach((L,i)=>{
     const box=document.createElement("div"); box.className="labLayer";
+    box.innerHTML=`<label>Layer ${i+1}</label>`;
+    const grid=document.createElement("div"); grid.className="labgrid";
+    const cell=(name,el)=>{const c=document.createElement("div");c.className="labf";
+      const s=document.createElement("span");s.textContent=name;c.append(s,el);
+      el.title=name; el.setAttribute("aria-label",`Layer ${i+1} ${name}`); return c;};
     const sel=(opts,val)=>{const s=document.createElement("select");opts.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
     const num=(v,step,min,max)=>{const n=document.createElement("input");n.type="number";n.value=v;n.step=step;if(min!=null)n.min=min;if(max!=null)n.max=max;return n;};
     const coord=sel(LAB_COORDS,L.coord), wave=sel(LAB_WAVES,L.wave);
     const freq=num(L.freq,0.1), phase=num(L.phase,0.05), weight=num(L.weight,0.1,0), slot=num(L.slot,1,1);
-    [[coord,"coordinate"],[wave,"waveform"],[freq,"frequency"],[phase,"phase"],[weight,"weight"],[slot,"color slot"]].forEach(([el,name])=>{el.title=name;el.setAttribute("aria-label",`Layer ${i+1} ${name}`);});
-    box.innerHTML=`<label>Layer ${i+1}</label>`;
-    const row1=document.createElement("div");row1.className="lrow";row1.append(coord,wave);
-    const row2=document.createElement("div");row2.className="lrow";row2.append(freq,phase);
-    const row3=document.createElement("div");row3.className="lrow";row3.append(weight,slot);
-    box.append(row1,row2,row3); host.appendChild(box);
+    grid.append(cell("coord",coord),cell("wave",wave),cell("freq",freq),cell("phase",phase),cell("weight",weight),cell("slot",slot));
+    box.appendChild(grid); host.appendChild(box);
     [coord,wave,freq,phase,weight,slot].forEach(el=>el.onchange=commitLab);
     box._get=()=>({coord:coord.value,wave:wave.value,freq:+freq.value,phase:+phase.value,weight:+weight.value,slot:Math.max(1,Math.round(+slot.value))});
   });
