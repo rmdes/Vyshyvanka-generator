@@ -11,7 +11,7 @@ const chance=(p)=>RNG()<p;
 const shuffle=(a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* global generation config (set per generate) */
-const CFG={variety:0.6,dens:3};
+const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:''};
 
 /* ===================== grid helpers ===================== */
 const newGrid=(w,h)=>Array.from({length:h},()=>new Int8Array(w));
@@ -178,11 +178,32 @@ function remapHero(g){
 function heroForRegion(region){
   return (VY.HERO_MOTIFS||[]).filter(h=>!h.regions.length||h.regions.includes(region));
 }
-// unified motif source: hero vs procedural, ratio driven by Variety
+// pure selection: which source for a given roll r, tradition tr, hero availability
+function pickSource(r, tr, hasHero){
+  if(r < tr) return 'field';                 // tradition high -> more field (invention)
+  const rest=r-tr, span=Math.max(1e-6, 1-tr);
+  if(hasHero && rest < span*0.5) return 'hero';
+  return 'archetype';
+}
+function genomeForCFG(m){
+  const aim={ornate:CFG.dens, wild:CFG.variety, tradition:CFG.tradition, symmetry:CFG.symmetry};
+  const base=sampleGenome(CFG.P, aim);
+  return CFG.lab ? mergeGenome(base, CFG.lab) : base;
+}
+// merge partial lab overrides onto a sampled genome (overridden fields win)
+function mergeGenome(base, lab){
+  const out={ sym: lab.sym||base.sym, levels: lab.levels||base.levels,
+              centerStyle: lab.centerStyle||base.centerStyle, layers: base.layers.map(l=>({...l})) };
+  if(Array.isArray(lab.layers)){
+    out.layers = lab.layers.map((lo,i)=>({ ...(base.layers[i]||base.layers[0]), ...lo }));
+  }
+  return out;
+}
 function pickMotif(m){
-  const v=CFG.variety, pool=heroForRegion(CFG.region);
-  const useHero = pool.length && RNG() > (0.25 + v*0.6);
-  if(useHero){ return remapHero(pick(pool).grid); }
+  const tr=CFG.tradition, pool=heroForRegion(CFG.region);
+  const src=pickSource(RNG(), tr, pool.length>0);
+  if(src==='field') return makeFieldMotif(m, genomeForCFG(m));
+  if(src==='hero')  return remapHero(pick(pool).grid);
   return makeMotif(m);
 }
 
@@ -352,6 +373,7 @@ VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
 VY.gen.makeFieldMotif = makeFieldMotif;
 VY.gen.sampleGenome = sampleGenome;
 VY.gen.pickMotif = pickMotif;
+VY.gen.pickSource = pickSource;
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
 VY.gen.setConfig = (cfg) => {
   Object.assign(CFG, cfg);
