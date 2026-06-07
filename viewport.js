@@ -52,6 +52,7 @@ window.VY = window.VY || {};
     return c;
   }
   function reraster(){
+    if(raf){ cancelAnimationFrame(raf); raf=0; }
     const [W,H]=stageSize(); const t=transformFor(VP,W,H); curCell=t.cell;
     const c=rasterFor(curCell);
     VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
@@ -79,7 +80,8 @@ window.VY = window.VY || {};
     const stage=document.querySelector(".stage");
     stage.addEventListener("wheel",(e)=>{ if(!PIECE) return; e.preventDefault();
       const r=stage.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
-      const factor=Math.exp(-e.deltaY*0.0015);
+      const dy=e.deltaMode===1 ? e.deltaY*16 : e.deltaMode===2 ? e.deltaY*400 : e.deltaY;
+      const factor=Math.exp(-dy*0.0015);
       VP=zoomAt(VP, factor, sx, sy, r.width, r.height); liveCommit();
     },{passive:false});
     let dragging=false, lastX=0, lastY=0;
