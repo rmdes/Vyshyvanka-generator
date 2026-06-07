@@ -49,7 +49,7 @@ function syncUI(){
   const wall=state.mode==="wallpaper";
   document.getElementById("wallControls").classList.toggle("hidden",!wall);
   document.getElementById("panelControls").classList.toggle("hidden",wall);
-  document.getElementById("hint").textContent=wall?"preview scaled · PNG exports full resolution":"scroll to pan tall panels";
+  document.getElementById("hint").textContent="scroll = zoom · drag = pan · 0 = fit";
   const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
   [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
   [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
