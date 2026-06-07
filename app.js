@@ -183,6 +183,7 @@ document.getElementById("undo").onclick=()=>{
   if(HIST.length<2){return;} HIST.pop();
   const prev=JSON.parse(HIST[HIST.length-1]);
   restoring=true; Object.assign(state,prev); syncUI(); generate(); restoring=false;
+  if(state.lab)openSection("lab");
 };
 
 /* ---- Lab panel (genome overrides) ---- */
