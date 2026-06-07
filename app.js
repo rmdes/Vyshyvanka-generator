@@ -255,6 +255,19 @@ document.getElementById("labNLayers").onchange=e=>{
 document.getElementById("labLevels").oninput=e=>{document.getElementById("labLevelsVal").textContent=e.target.value;};
 document.getElementById("labLevels").onchange=commitLab;
 document.getElementById("labReset").onclick=()=>{ state.lab=null; generate(); };
+document.getElementById("labRandom").onclick=()=>{
+  const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
+  VY.gen.setSeed(Math.random().toString(36).slice(2)+"|labrnd");  // transient; generate() reseeds before render
+  const G=VY.gen.sampleGenome(P,{ornate:dens,wild:state.variety/100,tradition:state.tradition/100,symmetry:state.symmetry});
+  state.lab={ levels:G.levels, centerStyle:G.centerStyle, layers:G.layers };
+  document.getElementById("labNLayers").value=G.layers.length;
+  document.getElementById("labNLayersVal").textContent=G.layers.length;
+  document.getElementById("labLevels").value=G.levels;
+  document.getElementById("labLevelsVal").textContent=G.levels;
+  buildLabLayers(G);
+  generate();
+};
 
 /* ---- mobile drawer ---- */
 document.getElementById("menuBtn").onclick=()=>document.body.classList.toggle("menu-open");
