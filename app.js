@@ -34,16 +34,21 @@ function syncUI(){
   document.getElementById("cxVal").textContent=state.complexity;
   document.getElementById("variety").value=state.variety;
   document.getElementById("vyVal").textContent=state.variety+"%";
+  const cx=document.getElementById("complexity");
+  cx.setAttribute("aria-valuetext",`Complexity ${state.complexity} of 5`);
+  const vy=document.getElementById("variety");
+  vy.setAttribute("aria-valuetext",`Variety ${state.variety} percent`);
   document.getElementById("seed").value=state.seed;
   resSel.value=state.res;
   const wall=state.mode==="wallpaper";
   document.getElementById("wallControls").classList.toggle("hidden",!wall);
   document.getElementById("panelControls").classList.toggle("hidden",wall);
   document.getElementById("hint").textContent=wall?"preview scaled · PNG exports full resolution":"scroll to pan tall panels";
-  [...document.getElementById("modeSeg").children].forEach(b=>b.classList.toggle("on",b.dataset.mode===state.mode));
-  [...document.getElementById("styleSeg").children].forEach(b=>b.classList.toggle("on",b.dataset.style===state.style));
+  const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
+  [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
+  [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
   const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale"};
-  for(const id in segKey)[...document.getElementById(id).children].forEach(b=>b.classList.toggle("on",b.dataset.v===state[segKey[id]]));
+  for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
   const name=VY.REGIONS[state.region].name.split(" — ")[0];
   document.getElementById("title").textContent=wall
     ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
@@ -51,6 +56,7 @@ function syncUI(){
 }
 
 function generate(updateHash=true){
+  pushHistory();
   VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}`);
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
@@ -125,6 +131,38 @@ document.getElementById("share").onclick=async()=>{writeHash();const btn=documen
   try{await navigator.clipboard.writeText(location.href);btn.textContent="Copied!";setTimeout(()=>btn.textContent="Copy link",1200);}
   catch{prompt("Share link:",location.href);}};
 
+/* ---- favorites (localStorage) ---- */
+const FAV_KEY="vy_favorites";
+const loadFavs=()=>{try{return JSON.parse(localStorage.getItem(FAV_KEY))||[];}catch{return[];}};
+const saveFavs=(f)=>localStorage.setItem(FAV_KEY,JSON.stringify(f));
+function renderFavs(){
+  const wrap=document.getElementById("favs"); wrap.innerHTML="";
+  loadFavs().forEach((f,idx)=>{
+    const b=document.createElement("button"); b.className="fav"; b.title=f.seed;
+    const img=document.createElement("img"); img.src=f.thumb; img.alt=`${f.region} ${f.seed}`;
+    const rm=document.createElement("button"); rm.className="rm"; rm.textContent="✕";
+    rm.onclick=(e)=>{e.stopPropagation();const arr=loadFavs();arr.splice(idx,1);saveFavs(arr);renderFavs();};
+    b.appendChild(img); b.appendChild(rm);
+    b.onclick=()=>{Object.assign(state,f.state);syncUI();generate();};
+    wrap.appendChild(b);
+  });
+}
+document.getElementById("save").onclick=()=>{
+  const thumb=VY.cv.toDataURL("image/png");
+  const arr=loadFavs();
+  arr.unshift({seed:state.seed, region:state.region, state:{...state}, thumb});
+  saveFavs(arr.slice(0,12)); renderFavs();
+};
+
+/* ---- undo (history stack) ---- */
+const HIST=[]; let restoring=false;
+function pushHistory(){ if(restoring) return; HIST.push(JSON.stringify(state)); if(HIST.length>30) HIST.shift(); }
+document.getElementById("undo").onclick=()=>{
+  if(HIST.length<2){return;} HIST.pop();
+  const prev=JSON.parse(HIST[HIST.length-1]);
+  restoring=true; Object.assign(state,prev); syncUI(); generate(); restoring=false;
+};
+
 /* ---- mobile drawer ---- */
 document.getElementById("menuBtn").onclick=()=>document.body.classList.toggle("menu-open");
 document.getElementById("backdrop").onclick=()=>document.body.classList.remove("menu-open");
@@ -132,7 +170,7 @@ document.getElementById("drawerClose").onclick=()=>document.body.classList.remov
 
 /* ---- boot ---- */
 VY.app = { generate, state, _lastTile:null, _lastModel:null };
-readHash();syncUI();generate(false);
+readHash();syncUI();generate(false);renderFavs();
 
 document.getElementById("tile").onclick=()=>{
   if(!VY.app._lastTile){alert("Tile export is available for the Seamless layout.");return;}

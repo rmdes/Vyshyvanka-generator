@@ -23,7 +23,7 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
   <fieldset>
     <legend>Output</legend>
     <label>Mode</label>
-    <div class="seg" id="modeSeg">
+    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Output mode">
       <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
       <button data-mode="panel">🧵 Garment panel</button>
     </div>
@@ -46,22 +46,22 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     <label for="res">Resolution</label>
     <select id="res"></select>
     <label>Layout</label>
-    <div class="seg" id="layoutSeg"></div>
+    <div class="seg" id="layoutSeg" role="radiogroup" aria-label="Layout"></div>
     <label>Cloth background</label>
-    <div class="seg" id="bgSeg"></div>
+    <div class="seg" id="bgSeg" role="radiogroup" aria-label="Cloth background"></div>
     <label>Motif scale</label>
-    <div class="seg" id="scaleSeg"></div>
+    <div class="seg" id="scaleSeg" role="radiogroup" aria-label="Motif scale"></div>
   </fieldset>
 
   <fieldset id="panelControls" class="hidden">
     <legend>Panel shape</legend>
-    <div class="seg" id="shapeSeg"></div>
+    <div class="seg" id="shapeSeg" role="radiogroup" aria-label="Panel shape"></div>
   </fieldset>
 
   <fieldset>
     <legend>Stitch &amp; seed</legend>
     <label>Stitch style</label>
-    <div class="seg" id="styleSeg">
+    <div class="seg" id="styleSeg" role="radiogroup" aria-label="Stitch style">
       <button data-style="x" class="on">✕ Cross-stitch</button>
       <button data-style="sq">▢ Filled</button>
     </div>
@@ -81,6 +81,11 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
       <button id="tile">Download tile</button>
       <button id="chart">Download chart</button>
     </div>
+    <div class="row">
+      <button id="save">★ Save</button>
+      <button id="undo">↶ Undo</button>
+    </div>
+    <div id="favs" class="favs" aria-label="Saved designs"></div>
   </div>
 </aside>
 
