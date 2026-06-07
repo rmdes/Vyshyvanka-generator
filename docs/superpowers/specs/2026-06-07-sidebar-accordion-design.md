@@ -76,11 +76,12 @@ generation, determinism, state, or hash changes.
    layout `#layoutSeg`, scale `#scaleSeg`) OR `#panelControls` (`#shapeSeg`),
    toggled by mode exactly as today.
 3. **Style** — stitch style (`#styleSeg`), cloth background (`#bgSeg`).
-4. **🧪 Lab** — the genome editor (`#labNLayers`, `#labLevels`, `#labLayers`,
-   `#labReset`). Its existing "pre-fill from seed when opened with no active lab"
-   behavior fires when this section opens.
-5. **Export & saved** — `#png`, `#tile`, `#chart`, `#share`, `#save`, and the
-   `#favs` strip.
+4. **🧪 Lab** — the genome editor (`#labNLayers`, `#labLevels`, `#labLayers`),
+   plus a `#labRandom` ("🎲 Randomize") and the existing `#labReset` ("Reset to
+   seed"). Its "pre-fill from seed when opened with no active lab" behavior fires
+   when this section opens.
+5. **Export & saved** — `#png`, `#tile`, `#chart`, `#share`, `#save`, the `#favs`
+   strip, and a `#resetAll` ("Reset all") button.
 
 Note: **Cloth background** moves out of the Wallpaper block into **Style**; it
 already applies only in wallpaper mode via `applyBg`, so no behavior change — it
@@ -99,6 +100,45 @@ Rebuild each layer's editor so all six controls fit the ~248px content width:
 - The micro-labels also serve as the accessible field names (supersede the
   prior `aria-label`-only approach; keep an `aria-label` too for safety).
 - Result: `.labLayer` width ≤ column width; **no horizontal scrollbar**.
+
+## New controls
+
+### Lab "🎲 Randomize" (re-roll the genome)
+
+A button in the Lab section, alongside "Reset to seed", that pins a **fresh
+random genome** so the user can explore without hand-editing every field:
+
+- On click: reseed the RNG with a random value (`Math.random()` — the same
+  source the main 🎲 New design uses to mint a seed), then call
+  `VY.gen.sampleGenome(P, aim)` with the current aim
+  (`{ornate: dens, wild: variety/100, tradition: tradition/100, symmetry}`) and
+  the active palette `P`, exactly as `labCurrentGenome` already derives `P`/`dens`.
+- Assign the result as a fresh `state.lab` object (immutable, same shape
+  `{levels, centerStyle, layers}` `commitLab` produces), rebuild the layer
+  editors to show the new values, and `generate()`.
+- Because the produced genome is concrete and serialized into the hash, a
+  randomized Lab stays deterministic and shareable.
+- Determinism note: `generate()` always reseeds before rendering, so the
+  transient `Math.random()`-seeded RNG used to sample the genome never leaks
+  into the render (same invariant as `labCurrentGenome` today).
+
+### "Reset all" (clear saved data + return to defaults)
+
+A button in the **Export & saved** section, by the favorites strip, for a clean
+"start fresh":
+
+- Behind a `confirm()` (it deletes favorites), it:
+  1. Removes our `localStorage` keys (`vy_favorites`, `vy_openSection`).
+  2. Resets `state` to the default initializer values (mode `wallpaper`, region
+     `hutsul`, complexity 3, variety 45, tradition 20, symmetry `d4`, style `x`,
+     seed `vyshyvanka`, res `screen`, layout `fabric`, bg `charcoal`, scale
+     `medium`, shape `sleeve`, `lab: null`). Centralize these defaults in one
+     `DEFAULTS` object so the initializer and reset share a single source.
+  3. Clears the URL hash (`history.replaceState(null,"",location.pathname)`).
+  4. Re-renders: `syncUI()`, `generate(false)` (no hash write — fresh default
+     state), and `renderFavs()` (now empty).
+- The accordion returns to its default open section (`design`) since the
+  persisted key was cleared.
 
 ## Accordion controller (app.js)
 
@@ -129,9 +169,13 @@ Rebuild each layer's editor so all six controls fit the ~248px content width:
 
 ## Out of scope
 
-- No generation/engine changes, no determinism/hash changes, no new state.
+- No generation/engine changes, no determinism/hash changes, no new state fields.
 - No change to the main preview canvas area, toolbar, or disclaimer.
-- No new controls or features — purely reorganizing existing ones + the Lab fit.
+- Aside from the two small additive controls (Lab "🎲 Randomize" and "Reset
+  all"), no new features — purely reorganizing existing controls + the Lab fit.
+  Both new controls reuse existing machinery (`sampleGenome`/`commitLab` flow and
+  the favorites/localStorage helpers); neither adds generation logic or state
+  fields.
 
 ## Verification
 
