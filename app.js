@@ -179,7 +179,7 @@ function renderFavs(){
 }
 document.getElementById("save").onclick=()=>{
   const tc=document.createElement("canvas"); tc.width=108; tc.height=72;
-  tc.getContext("2d").drawImage(VY.cv,0,0,108,72);
+  tc.getContext("2d").drawImage(VY.app._exportCanvas||VY.cv,0,0,108,72);
   const thumb=tc.toDataURL("image/png");
   const arr=loadFavs();
   arr.unshift({seed:state.seed, region:state.region, state:{...state}, thumb});

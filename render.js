@@ -51,15 +51,6 @@ function drawGrid(model, cell, ox, oy, style, seedNum){
     }
   }
 }
-let LAST={W:0,H:0};
-function fitPreview(W,H){
-  LAST={W,H};
-  const stage=document.querySelector(".stage");
-  const maxW=Math.max(140,(stage.clientWidth||860)-26), maxH=Math.max(140,(stage.clientHeight||600)-26);
-  const s=Math.min(maxW/W,maxH/H,1);
-  cv.style.width=Math.round(W*s)+"px";cv.style.height=Math.round(H*s)+"px";
-}
-
 function buildTileCanvas(model, cell, style, seedNum){
   const c=document.createElement("canvas");
   c.width=model.cols*cell; c.height=model.rows*cell;
@@ -67,10 +58,6 @@ function buildTileCanvas(model, cell, style, seedNum){
   tctx.fillStyle=model.palette.bg; tctx.fillRect(0,0,c.width,c.height);
   const save=ctx; setCtx(tctx); drawGrid(model, cell, 0, 0, style, seedNum); setCtx(save);
   return c;
-}
-function fillPattern(W,H,tileCanvas){
-  const p=ctx.createPattern(tileCanvas,"repeat");
-  ctx.fillStyle=p; ctx.fillRect(0,0,W,H);
 }
 // raster a seamless wallpaper piece of (pcols x prows) stitches at a given cell,
 // by tiling the seamless tile (rendered at that cell) across an offscreen canvas
@@ -117,4 +104,4 @@ function renderChart(model){
   return c;
 }
 
-VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx, renderChart, rasterSeamless };
+VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterSeamless };
