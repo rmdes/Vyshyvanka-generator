@@ -88,7 +88,7 @@ window.VY = window.VY || {};
       VP=zoomAt(VP, factor, sx, sy, r.width, r.height); liveCommit();
     },{passive:false});
     let dragging=false, lastX=0, lastY=0;
-    stage.addEventListener("pointerdown",(e)=>{ if(!PIECE||e.pointerType==="touch") return; dragging=true; lastX=e.clientX; lastY=e.clientY;
+    stage.addEventListener("pointerdown",(e)=>{ if(!PIECE||e.pointerType==="touch") return; if(e.target.closest&&e.target.closest(".vphud")) return; dragging=true; lastX=e.clientX; lastY=e.clientY;
       stage.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); });
     stage.addEventListener("pointermove",(e)=>{ if(!dragging) return;
       const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
@@ -112,7 +112,7 @@ window.VY = window.VY || {};
     const tup=(e)=>{ if(e.pointerType!=="touch")return; pts.delete(e.pointerId); if(pts.size<2){ pinch0=0; pinchVP=null; } };
     stage.addEventListener("pointerup",tup); stage.addEventListener("pointercancel",tup);
     window.addEventListener("keydown",(e)=>{ if(!PIECE) return; const tag=(e.target.tagName||"").toLowerCase();
-      if(tag==="input"||tag==="select"||tag==="textarea") return; const [W,H]=stageSize();
+      if(tag==="input"||tag==="select"||tag==="textarea"||tag==="button") return; const [W,H]=stageSize();
       if(e.key==="+"||e.key==="="){ VP=zoomAt(VP,1.25,W/2,H/2,W,H); liveCommit(); }
       else if(e.key==="-"||e.key==="_"){ VP=zoomAt(VP,0.8,W/2,H/2,W,H); liveCommit(); }
       else if(e.key==="0"){ fit(); }
