@@ -144,6 +144,8 @@ document.getElementById("tile").onclick=()=>{
 document.getElementById("chart").onclick=()=>{
   const model=VY.app._lastModel;
   if(!model){return;}
+  const cells=model.cols*model.rows;
+  if(cells>20000 && !confirm(`This chart is ${model.cols}×${model.rows} (${cells.toLocaleString()} stitches) — a very large image that isn't practical to stitch. Tip: the Seamless layout or a Garment panel makes a usable chart. Download anyway?`)){return;}
   const c=VY.render.renderChart(model);
   const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_chart_${state.seed}.png`;
