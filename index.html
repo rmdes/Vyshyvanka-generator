@@ -49,16 +49,16 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     <section class="acc-sec" data-sec="lab">
       <button class="acc-h" aria-expanded="false" aria-controls="sec-lab">🧪 Lab</button>
       <div class="acc-b hidden" id="sec-lab">
+        <div class="row">
+          <button type="button" id="labRandom">🎲 Randomize</button>
+          <button type="button" id="labReset">Reset to seed</button>
+        </div>
+        <div class="tag" style="margin-bottom:6px">Randomize rolls a new genome · Reset returns to seed-driven motifs · editing pins the exact genome.</div>
         <label>Layers <span class="val" id="labNLayersVal"></span></label>
         <input type="range" id="labNLayers" min="1" max="4" step="1" />
         <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
         <input type="range" id="labLevels" min="2" max="10" step="1" />
         <div id="labLayers"></div>
-        <div class="row">
-          <button type="button" id="labRandom">🎲 Randomize</button>
-          <button type="button" id="labReset">Reset to seed</button>
-        </div>
-        <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
       </div>
     </section>
 
