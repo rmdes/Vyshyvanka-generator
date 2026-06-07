@@ -123,10 +123,7 @@ function generate(updateHash=true){
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
   VY.app._exportCanvas=exp; VY.app._piece=piece;
-  // (temporary) keep today's on-screen behavior: blit the export canvas to #cv
-  VY.cv.width=exp.width; VY.cv.height=exp.height; VY.ctx.setTransform(1,0,0,1,0,0);
-  VY.ctx.drawImage(exp,0,0);
-  VY.render.fitPreview(exp.width,exp.height);
+  VY.viewport.attach(piece);
   if(updateHash)writeHash();
 }
 
@@ -293,7 +290,7 @@ document.getElementById("backdrop").onclick=()=>document.body.classList.remove("
 document.getElementById("drawerClose").onclick=()=>document.body.classList.remove("menu-open");
 
 /* ---- boot ---- */
-VY.app = { generate, state, _lastTile:null, _lastModel:null };
+VY.app = { generate, state, _lastTile:null, _lastModel:null, _exportCanvas:null, _piece:null };
 readHash();syncUI();generate(false);renderFavs();
 let _open="design"; try{const k=localStorage.getItem(SEC_KEY); if(SECTIONS.includes(k)) _open=k;}catch{}
 if(state.lab) _open="lab";

@@ -36,6 +36,30 @@ window.VY = window.VY || {};
     return { lod, cell, s, tx:stageW/2 - vp.cx*vp.zoom, ty:stageH/2 - vp.cy*vp.zoom };
   }
 
+  let PIECE=null, VP=null, rasterCanvas=null, curCell=0;
+  function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
+  function applyTransform(){
+    if(!rasterCanvas) return;
+    const [W,H]=stageSize(); const t=transformFor(VP,W,H);
+    const k=t.cell/curCell; // raster rendered at curCell vs the LOD cell
+    rasterCanvas.style.transform=`translate(${t.tx}px,${t.ty}px) scale(${t.s*k})`;
+  }
+  function reraster(){
+    const [W,H]=stageSize(); const t=transformFor(VP,W,H); curCell=t.cell;
+    const c=PIECE.rasterAtCell(curCell);
+    VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
+    VY.ctx.clearRect(0,0,c.width,c.height); VY.ctx.drawImage(c,0,0);
+    VY.cv.style.width=c.width+"px"; VY.cv.style.height=c.height+"px"; rasterCanvas=VY.cv;
+    applyTransform();
+  }
+  function attach(piece, restoreView){
+    PIECE=piece; const [W,H]=stageSize();
+    VP = restoreView ? clampView({...restoreView, fitZoom:fitView(piece,W,H).fitZoom}, piece, W,H)
+                     : fitView(piece, W, H);
+    reraster();
+  }
+  function getView(){ return VP?{cx:VP.cx,cy:VP.cy,zoom:VP.zoom}:null; }
+
   VY.viewport = { LODS, ZMAX, cellForLod, lodForZoom, screenToPattern, patternToScreen,
-                  fitView, clampView, zoomAt, transformFor };
+                  fitView, clampView, zoomAt, transformFor, attach, getView };
 })();
