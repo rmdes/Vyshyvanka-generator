@@ -117,7 +117,7 @@ function readHash(){if(!location.hash)return;const p=new URLSearchParams(locatio
   state.layout=g("lay",state.layout);state.bg=g("bg",state.bg);state.scale=g("sc",state.scale);state.shape=g("sh",state.shape);
   const ti=+g("tr",state.tradition); if(Number.isFinite(ti)) state.tradition=Math.max(0,Math.min(100,Math.round(ti)));
   const sy=g("sym",state.symmetry); if(sy==="d4"||sy==="d2"||sy==="loose") state.symmetry=sy;
-  const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o&&Array.isArray(o.layers)||o&&(o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }}
+  const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o && typeof o==="object" && !Array.isArray(o) && (Array.isArray(o.layers)||o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }}
 
 /* ---- events ---- */
 [...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;syncUI();generate();});
