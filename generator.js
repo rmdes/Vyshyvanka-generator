@@ -201,7 +201,8 @@ function mergeGenome(base, lab){
 }
 function pickMotif(m){
   const tr=CFG.tradition, pool=heroForRegion(CFG.region);
-  const src=pickSource(RNG(), tr, pool.length>0);
+  let src=pickSource(RNG(), tr, pool.length>0);    // roll regardless (keeps placement RNG stable)
+  if(CFG.lab) src='field';                          // a pinned Lab genome is shown on EVERY motif so edits are visible
   if(src==='field') return makeFieldMotif(m, genomeForCFG(m));
   if(src==='hero')  return remapHero(pick(pool).grid);
   return makeMotif(m);

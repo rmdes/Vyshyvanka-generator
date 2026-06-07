@@ -241,7 +241,7 @@ function buildLabLayers(G){
 function commitLab(){
   const layers=[...document.querySelectorAll("#labLayers .labLayer")].map(b=>b._get());
   state.lab={ levels:+document.getElementById("labLevels").value, centerStyle:(state.lab&&state.lab.centerStyle)||"dot", layers };
-  resetView();generate();
+  generate();   // keep the current zoom so genome edits are visible up close
 }
 function openLabFromSeed(){
   const G=labCurrentGenome();
@@ -277,7 +277,7 @@ document.getElementById("labNLayers").onchange=e=>{
 };
 document.getElementById("labLevels").oninput=e=>{document.getElementById("labLevelsVal").textContent=e.target.value;};
 document.getElementById("labLevels").onchange=commitLab;
-document.getElementById("labReset").onclick=()=>{ resetView();state.lab=null; generate(); openLabFromSeed(); };
+document.getElementById("labReset").onclick=()=>{ state.lab=null; generate(); openLabFromSeed(); };
 document.getElementById("labRandom").onclick=()=>{
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
@@ -289,7 +289,7 @@ document.getElementById("labRandom").onclick=()=>{
   document.getElementById("labLevels").value=G.levels;
   document.getElementById("labLevelsVal").textContent=G.levels;
   buildLabLayers(G);
-  resetView();generate();
+  generate();   // keep the current zoom so the new genome is visible up close
 };
 
 /* ---- mobile drawer ---- */
