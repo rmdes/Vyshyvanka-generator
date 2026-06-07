@@ -17,19 +17,26 @@ Open `vyshyvanka-generator.html` in any browser. No build step, no server, works
   **Variety** slider controls how far individual motifs deviate.
 - **Deterministic**: a seed + settings always reproduce the exact same pattern.
   Designs are fully shareable/restorable via the URL (the `Copy link` button).
-- **Export**: full-resolution PNG at standard screen sizes (incl. auto-detected screen).
+- **Export**: full-resolution PNG at standard screen sizes (incl. auto-detected screen),
+  plus seamless tile export and a printable counted-stitch chart with thread legend.
+- **Favorites / undo**: lock a design you like and step back through recent changes.
 
-## Important: this is not an authenticity tool
+## Interpretations, not authenticity
 
-It generates patterns *inspired by* documented regional traits of Ukrainian
-embroidery. It does **not** define what a "true" vyshyvanka is, encode symbolic
-meaning, or reproduce specific traditional motifs. Vyshyvanka symbolism is
-regional, contested, and not a fixed alphabet — the seed word is a reproducibility
-key, not a meaning.
+This is a formal/structural toy, not an authenticity tool. Alongside its
+procedural motifs, it now includes **best-effort interpretations of documented
+regional motifs** — researched and transcribed by hand. These are **not** exact
+reproductions of traditional charts, and they make **no claim** of authoritative
+symbolic meaning. Vyshyvanka symbolism is regional, contested, and not a fixed
+alphabet; the seed word is a reproducibility key, not a meaning. Treat the output
+as an interpretation inspired by the tradition, not a substitute for it.
+
+## Recently added
+
+- [x] Hand-authored regional "hero" motifs (biggest quality jump vs. the generic procedural look)
+- [x] Printable counted-stitch chart (numbered grid + thread legend)
+- [x] "Favorites" / lock-a-design affordance
 
 ## Ideas / backlog
 
-- Hand-authored regional "hero" motifs (biggest quality jump vs. the generic procedural look)
-- Printable counted-stitch chart (numbered grid + thread legend)
-- "Favorites" / lock-a-design affordance
-- Per-region frame mat tinting in the preview
+- [ ] Per-region frame mat tinting in the preview
