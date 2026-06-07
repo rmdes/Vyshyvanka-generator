@@ -74,6 +74,7 @@ function generate(updateHash=true){
     VY.render.fillPattern(W,H,tileCanvas);
     VY.render.fitPreview(W,H);
     VY.app._lastTile=tileCanvas;
+    VY.app._lastModel=tileModel;
     document.getElementById("dims").textContent=`${W}×${H}px · seamless tile ${tileModel.cols}×${tileModel.rows}`;
   }else if(state.mode==="wallpaper"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
@@ -83,6 +84,7 @@ function generate(updateHash=true){
     const ox=Math.round((W-model.cols*model.cell)/2),oy=Math.round((H-model.rows*model.cell)/2);
     VY.render.drawGrid(model,model.cell,ox,oy,state.style,seedNum);
     VY.render.fitPreview(W,H);
+    VY.app._lastModel=model;
     document.getElementById("dims").textContent=`${W}×${H}px · ${model.cols}×${model.rows} stitches`;
   }else{
     const model=VY.gen.composePanel(state.shape);
@@ -92,6 +94,7 @@ function generate(updateHash=true){
     VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
     VY.render.drawGrid(model,cell,0,0,state.style,seedNum);
     VY.render.fitPreview(W,H);
+    VY.app._lastModel=model;
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
   if(updateHash)writeHash();
@@ -128,7 +131,7 @@ document.getElementById("backdrop").onclick=()=>document.body.classList.remove("
 document.getElementById("drawerClose").onclick=()=>document.body.classList.remove("menu-open");
 
 /* ---- boot ---- */
-VY.app = { generate, state, _lastTile:null };
+VY.app = { generate, state, _lastTile:null, _lastModel:null };
 readHash();syncUI();generate(false);
 
 document.getElementById("tile").onclick=()=>{
@@ -136,4 +139,13 @@ document.getElementById("tile").onclick=()=>{
   const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_tile_${state.seed}.png`;
   a.href=VY.app._lastTile.toDataURL("image/png"); a.click();
+};
+
+document.getElementById("chart").onclick=()=>{
+  const model=VY.app._lastModel;
+  if(!model){return;}
+  const c=VY.render.renderChart(model);
+  const a=document.createElement("a");
+  a.download=`vyshyvanka_${state.region}_chart_${state.seed}.png`;
+  a.href=c.toDataURL("image/png"); a.click();
 };

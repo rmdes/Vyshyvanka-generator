@@ -74,4 +74,39 @@ function fillPattern(W,H,tileCanvas){
   ctx.fillStyle=p; ctx.fillRect(0,0,W,H);
 }
 
-VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx };
+/* ===================== counted-stitch chart ===================== */
+const CHART_SYMBOLS = ["✚","◆","▲","●","■","✖","★","◐","◢","✦","◇","▼"];
+function renderChart(model){
+  const {grid,cols,rows,palette}=model;
+  const cell=18, padL=46, padT=46, legendH=24*(palette.threads.length)+40;
+  const c=document.createElement("canvas");
+  c.width=padL+cols*cell+20; c.height=padT+rows*cell+legendH;
+  const g=c.getContext("2d");
+  g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height);
+  g.textAlign="center"; g.textBaseline="middle"; g.font=`${cell-4}px monospace`;
+  const counts=new Array(palette.threads.length+1).fill(0);
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const v=grid[y][x]; if(v){counts[v]++;
+    g.fillStyle="#222"; g.fillText(CHART_SYMBOLS[(v-1)%CHART_SYMBOLS.length], padL+x*cell+cell/2, padT+y*cell+cell/2);}}
+  for(let x=0;x<=cols;x++){g.strokeStyle=(x%10===0)?"#333":"#ccc"; g.lineWidth=(x%10===0)?1.4:0.5;
+    g.beginPath(); g.moveTo(padL+x*cell,padT); g.lineTo(padL+x*cell,padT+rows*cell); g.stroke();}
+  for(let y=0;y<=rows;y++){g.strokeStyle=(y%10===0)?"#333":"#ccc"; g.lineWidth=(y%10===0)?1.4:0.5;
+    g.beginPath(); g.moveTo(padL,padT+y*cell); g.lineTo(padL+cols*cell,padT+y*cell); g.stroke();}
+  g.fillStyle="#555"; g.font="11px monospace";
+  for(let x=0;x<=cols;x+=10) g.fillText(String(x), padL+x*cell, padT-12);
+  for(let y=0;y<=rows;y+=10) g.fillText(String(y), padL-22, padT+y*cell);
+  let ly=padT+rows*cell+28; g.textAlign="left";
+  for(let i=1;i<=palette.threads.length;i++){
+    if(!counts[i]) continue;
+    const dmc=VY.gen.nearestDMC(palette.threads[i-1]);
+    g.fillStyle=palette.threads[i-1]; g.fillRect(padL, ly-9, 18, 18);
+    g.strokeStyle="#333"; g.strokeRect(padL, ly-9, 18, 18);
+    g.fillStyle="#222"; g.font="14px monospace"; g.textAlign="center";
+    g.fillText(CHART_SYMBOLS[(i-1)%CHART_SYMBOLS.length], padL+34, ly);
+    g.textAlign="left";
+    g.fillText(`DMC ${dmc?dmc.code:"?"} — ${dmc?dmc.name:""}  ×${counts[i]}`, padL+52, ly);
+    ly+=24;
+  }
+  return c;
+}
+
+VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx, renderChart };

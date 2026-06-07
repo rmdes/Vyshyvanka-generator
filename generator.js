@@ -256,8 +256,20 @@ function composeFabricTile(scaleKey){
   return {grid,cols,rows,palette:P};
 }
 
+/* ===================== DMC nearest-match ===================== */
+function hex2rgbG(h){if(h.toLowerCase()==="blanc")return[255,255,255];
+  const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function nearestDMC(hex){
+  const t=hex2rgbG(hex); let best=null, bd=Infinity;
+  for(const f of (VY.DMC||[])){const c=hex2rgbG(f.hex);
+    const d=(c[0]-t[0])**2+(c[1]-t[1])**2+(c[2]-t[2])**2;
+    if(d<bd){bd=d; best=f;}}
+  return best;
+}
+
 /* ===================== exported entry points ===================== */
 VY.gen = { composeWallpaper, composePanel, sampler };
+VY.gen.nearestDMC = nearestDMC;
 VY.gen.composeFabricTile = composeFabricTile;
 VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
 VY.gen.pickMotif = pickMotif;
