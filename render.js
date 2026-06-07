@@ -59,7 +59,6 @@ function fitPreview(W,H){
   const s=Math.min(maxW/W,maxH/H,1);
   cv.style.width=Math.round(W*s)+"px";cv.style.height=Math.round(H*s)+"px";
 }
-let resizeT; window.addEventListener("resize",()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>{if(LAST.W)fitPreview(LAST.W,LAST.H);},120);});
 
 function buildTileCanvas(model, cell, style, seedNum){
   const c=document.createElement("canvas");

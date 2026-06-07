@@ -44,15 +44,23 @@ window.VY = window.VY || {};
     const k=t.cell/curCell; // raster rendered at curCell vs the LOD cell
     rasterCanvas.style.transform=`translate(${t.tx}px,${t.ty}px) scale(${t.s*k})`;
   }
+  let cache=new Map(); const CACHE_MAX=6;
+  function rasterFor(cell){
+    if(cache.has(cell)){ const c=cache.get(cell); cache.delete(cell); cache.set(cell,c); return c; }
+    const c=PIECE.rasterAtCell(cell);
+    cache.set(cell,c); while(cache.size>CACHE_MAX){ cache.delete(cache.keys().next().value); }
+    return c;
+  }
   function reraster(){
     const [W,H]=stageSize(); const t=transformFor(VP,W,H); curCell=t.cell;
-    const c=PIECE.rasterAtCell(curCell);
+    const c=rasterFor(curCell);
     VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
     VY.ctx.clearRect(0,0,c.width,c.height); VY.ctx.drawImage(c,0,0);
     VY.cv.style.width=c.width+"px"; VY.cv.style.height=c.height+"px"; rasterCanvas=VY.cv;
     applyTransform();
   }
   function attach(piece, restoreView){
+    cache=new Map();
     PIECE=piece; const [W,H]=stageSize();
     VP = restoreView ? clampView({...restoreView, fitZoom:fitView(piece,W,H).fitZoom}, piece, W,H)
                      : fitView(piece, W, H);
@@ -60,6 +68,32 @@ window.VY = window.VY || {};
   }
   function getView(){ return VP?{cx:VP.cx,cy:VP.cy,zoom:VP.zoom}:null; }
 
+  let raf=0, settleT=0;
+  function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; applyTransform(); }); }
+  function settle(){ clearTimeout(settleT); settleT=setTimeout(()=>{ const [W,H]=stageSize();
+    if(transformFor(VP,W,H).cell!==curCell) reraster(); else applyTransform(); }, 130); }
+  function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H);
+    if(transformFor(VP,W,H).cell!==curCell){ reraster(); } else { schedule(); }
+    settle(); }
+  function init(){
+    const stage=document.querySelector(".stage");
+    stage.addEventListener("wheel",(e)=>{ if(!PIECE) return; e.preventDefault();
+      const r=stage.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
+      const factor=Math.exp(-e.deltaY*0.0015);
+      VP=zoomAt(VP, factor, sx, sy, r.width, r.height); liveCommit();
+    },{passive:false});
+    let dragging=false, lastX=0, lastY=0;
+    stage.addEventListener("pointerdown",(e)=>{ if(!PIECE||e.pointerType==="touch") return; dragging=true; lastX=e.clientX; lastY=e.clientY;
+      stage.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); });
+    stage.addEventListener("pointermove",(e)=>{ if(!dragging) return;
+      const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+      VP={...VP, cx:VP.cx-dx/VP.zoom, cy:VP.cy-dy/VP.zoom}; liveCommit(); });
+    const up=()=>{ if(!dragging) return; dragging=false; stage.classList.remove("grabbing"); settle(); };
+    stage.addEventListener("pointerup",up); stage.addEventListener("pointercancel",up);
+    let _resizeT;
+    window.addEventListener("resize",()=>{ clearTimeout(_resizeT); _resizeT=setTimeout(()=>{ if(PIECE) attach(PIECE, getView()); }, 120); });
+  }
+
   VY.viewport = { LODS, ZMAX, cellForLod, lodForZoom, screenToPattern, patternToScreen,
-                  fitView, clampView, zoomAt, transformFor, attach, getView };
+                  fitView, clampView, zoomAt, transformFor, attach, init, getView };
 })();

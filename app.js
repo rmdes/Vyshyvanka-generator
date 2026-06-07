@@ -291,6 +291,7 @@ document.getElementById("drawerClose").onclick=()=>document.body.classList.remov
 
 /* ---- boot ---- */
 VY.app = { generate, state, _lastTile:null, _lastModel:null, _exportCanvas:null, _piece:null };
+VY.viewport.init();
 readHash();syncUI();generate(false);renderFavs();
 let _open="design"; try{const k=localStorage.getItem(SEC_KEY); if(SECTIONS.includes(k)) _open=k;}catch{}
 if(state.lab) _open="lab";
