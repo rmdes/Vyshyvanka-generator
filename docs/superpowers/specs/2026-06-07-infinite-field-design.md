@@ -1,12 +1,33 @@
 # Infinite Roamable Field (Pillar B) — Design
 
 **Date:** 2026-06-07
-**Status:** DRAFT — skeleton pending the interactive brainstorm/approval gate
+**Status:** PARKED — skeleton only. Deliberately deferred until Pillar A is
+implemented and merged to `main`. Do NOT brainstorm/spec/plan/build B before then.
 **Branch/worktree:** `feature/infinite-field` (`/mnt/d/Private/Perso/vish-infinite-field`)
 
 > This is a starting skeleton, not an approved spec. The Generative Richness
 > (Pillar C) design defers this: *"Later spec; only after prototyping deep-zoom
 > on a bounded piece."* Flesh it out via the brainstorming skill before planning.
+
+## Parking decision (2026-06-07)
+
+B is **A's tile machinery with the `TileSource` swapped** for per-coordinate
+generation — additive on A's exact code in the same files (`viewport.js`,
+`render.js`, `app.js`). Decision: **park B until A is implemented and merged.**
+Rationale: A's `rasterTile`/viewport/LOD/cache interfaces will be refined during
+A's build (a B plan written against A's *spec* would target interfaces A's *code*
+changes); A and B rewriting the same files in parallel invites merge hell; and
+the roadmap gates B on a *working* A ("only after prototyping deep-zoom").
+
+### Resume checklist (when A has merged to `main`)
+1. In this worktree: `git fetch && git rebase origin/main` (pick up the merged
+   A viewport code: `viewport.js`, `VY.viewport.*`, the `TileSource` /
+   `rasterTile(model, lod, tx, ty, style, seedNum)` interface, LOD ladder, tile
+   cache, `{cx,cy,zoom}` viewport + `vx,vy,vz` hash).
+2. Confirm A's **real merged interfaces** (they supersede A's spec wording) —
+   especially the `rasterTile` signature and tile addressing B must plug into.
+3. Run the brainstorming skill on this skeleton → decisions on the open questions
+   below → approved spec → writing-plans → build on top of A.
 
 ## Inherited definition (from the Pillar C roadmap)
 
