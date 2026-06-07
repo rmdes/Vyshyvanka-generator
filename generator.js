@@ -146,6 +146,27 @@ function makeFieldMotif(m, G){
   return g;
 }
 
+// aim = { ornate:1..5, wild:0..1, tradition:0..1, symmetry:'d4'|'d2'|'loose' }
+function sampleGenome(P, aim){
+  const tr=aim.tradition, wild=aim.wild, ornate=aim.ornate;
+  const coordsTrad=['radial','manhattan','chebyshev'];
+  const coordsInv =['radial','manhattan','chebyshev','diagonal','angle','lattice'];
+  const nLayers=Math.max(1, Math.min(4, Math.round(1 + (ornate-1)*0.6 + tr*1.5)));
+  const layers=[];
+  for(let i=0;i<nLayers;i++){
+    const coord = pick(tr>0.4 ? coordsInv : coordsTrad);
+    const wave  = pick(tr>0.5 ? ['cos','tri','sq'] : ['cos','tri']);
+    const freq  = tr<0.3 ? ri(1,3) : (1 + RNG()*wild*(1+tr*5));
+    const phase = (tr<0.3?0:RNG()) * wild;
+    const weight= 0.5 + RNG()*0.8;
+    const slot  = pick(P.colorBias)+1;            // 1-based thread index
+    layers.push({coord,wave,freq,phase,weight,slot});
+  }
+  const levels = 2 + Math.round(ornate*0.8 + tr*3);
+  const centerStyle = pick(['dot','cross','ring','none']);
+  return { sym: aim.symmetry||'d4', layers, levels, centerStyle };
+}
+
 /* ===================== HERO MOTIFS — chart library mixed into procedural pool ===================== */
 // map semantic slots (1=primary,2=secondary,3=accent) -> palette thread indices
 function remapHero(g){
@@ -328,6 +349,7 @@ VY.gen.nearestDMC = nearestDMC;
 VY.gen.composeFabricTile = composeFabricTile;
 VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
 VY.gen.makeFieldMotif = makeFieldMotif;
+VY.gen.sampleGenome = sampleGenome;
 VY.gen.pickMotif = pickMotif;
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
 VY.gen.setConfig = (cfg) => {
