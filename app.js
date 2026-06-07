@@ -18,7 +18,8 @@ const RES=[
   ["sq","Square 1080×1080",1080,1080],
 ];
 const state={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
-             res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve"};
+             res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
+             tradition:20,symmetry:"d4",lab:null};
 
 const regionSel=document.getElementById("region");
 for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].name;regionSel.appendChild(o);}
@@ -57,7 +58,7 @@ function syncUI(){
 
 function generate(updateHash=true){
   pushHistory();
-  VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}`);
+  VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}|${state.lab?JSON.stringify(state.lab):""}`);
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setConfig({
@@ -65,6 +66,9 @@ function generate(updateHash=true){
     region:state.region,
     variety:state.variety/100,
     dens,
+    tradition:state.tradition/100,
+    symmetry:state.symmetry,
+    lab:state.lab,
   });
   const seedNum = VY.gen.hashStr(state.seed);
   VY.app._lastTile=null;
@@ -106,11 +110,14 @@ function generate(updateHash=true){
 }
 
 /* ---- shareable URL ---- */
-function writeHash(){const p=new URLSearchParams({m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape});history.replaceState(null,"","#"+p.toString());}
+function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
 function readHash(){if(!location.hash)return;const p=new URLSearchParams(location.hash.slice(1));const g=(k,d)=>p.get(k)??d;
   state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");const ci=+g("c",state.complexity); if(Number.isFinite(ci)) state.complexity=Math.max(1,Math.min(5,Math.round(ci)));
   const vi=+g("vy",state.variety); if(Number.isFinite(vi)) state.variety=Math.max(0,Math.min(100,Math.round(vi)));state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
-  state.layout=g("lay",state.layout);state.bg=g("bg",state.bg);state.scale=g("sc",state.scale);state.shape=g("sh",state.shape);}
+  state.layout=g("lay",state.layout);state.bg=g("bg",state.bg);state.scale=g("sc",state.scale);state.shape=g("sh",state.shape);
+  const ti=+g("tr",state.tradition); if(Number.isFinite(ti)) state.tradition=Math.max(0,Math.min(100,Math.round(ti)));
+  const sy=g("sym",state.symmetry); if(sy==="d4"||sy==="d2"||sy==="loose") state.symmetry=sy;
+  const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o&&Array.isArray(o.layers)||o&&(o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }}
 
 /* ---- events ---- */
 [...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;syncUI();generate();});
