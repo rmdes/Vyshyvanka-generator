@@ -101,19 +101,17 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     <section class="acc-sec" data-sec="export">
       <button class="acc-h" aria-expanded="false" aria-controls="sec-export">Export &amp; saved</button>
       <div class="acc-b hidden" id="sec-export">
-        <div class="row">
-          <button id="png">Download PNG</button>
-          <button id="share">Copy link</button>
+        <label>Download</label>
+        <div class="row3">
+          <button id="png" title="Full-resolution PNG of the current design">⬇ PNG</button>
+          <button id="tile" title="The seamless repeating tile (Seamless layout only)">⬇ Tile</button>
+          <button id="chart" title="Counted-stitch chart with DMC thread legend">⬇ Chart</button>
         </div>
-        <div class="row">
-          <button id="tile">Download tile</button>
-          <button id="chart">Download chart</button>
-        </div>
-        <div class="row">
-          <button id="save">★ Save</button>
-          <button id="resetAll">Reset all</button>
-        </div>
+        <button id="share" class="wide">🔗 Copy share link</button>
+        <label>Saved designs</label>
+        <button id="save" class="wide">★ Save current to favorites</button>
         <div id="favs" class="favs" aria-label="Saved designs"></div>
+        <button id="resetAll" class="wide danger" title="Clear favorites and reset all controls to defaults">↺ Reset all</button>
       </div>
     </section>
   </div>

@@ -148,7 +148,7 @@ document.getElementById("png").onclick=()=>{const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_${state.mode==="wallpaper"?state.layout+"_"+state.res:state.shape}_${state.seed}.png`;
   a.href=VY.cv.toDataURL("image/png");a.click();};
 document.getElementById("share").onclick=async()=>{writeHash();const btn=document.getElementById("share");
-  try{await navigator.clipboard.writeText(location.href);btn.textContent="Copied!";setTimeout(()=>btn.textContent="Copy link",1200);}
+  try{await navigator.clipboard.writeText(location.href);btn.textContent="Copied!";setTimeout(()=>btn.textContent="🔗 Copy share link",1200);}
   catch{prompt("Share link:",location.href);}};
 
 /* ---- favorites (localStorage) ---- */

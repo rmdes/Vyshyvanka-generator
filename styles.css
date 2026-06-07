@@ -63,6 +63,15 @@
 .acc-h[aria-expanded="true"]{color:#fff;background:var(--panel2)}
 .acc-b{padding:12px}
 aside{overflow-x:hidden}
+.row3{display:flex;gap:6px}
+.row3>*{flex:1;padding-left:4px;padding-right:4px;white-space:nowrap}
+.wide{width:100%}
+#sec-export>label{margin-top:12px}
+#sec-export>label:first-child{margin-top:0}
+#sec-export #share{margin-top:8px}
+#sec-export #favs{margin-top:8px}
+button.danger{margin-top:12px;color:var(--muted)}
+button.danger:hover{border-color:#c0432e;color:#ffb4a6}
   .val{color:var(--ink); float:right; font-variant-numeric:tabular-nums}
   .tag{font-size:10px; color:var(--muted)}
   .hidden{display:none !important}
