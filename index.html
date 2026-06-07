@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+ABOUTME: Single-file procedural "vyshyvanka-style" cross-stitch sprite generator with wallpaper export.
+ABOUTME: Generates symmetric counted-thread patterns from geometric primitives + regional palettes. Not a claim of authenticity or meaning.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vyshyvanka Wallpaper Generator — formal/structural explorer</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<aside>
+  <button class="drawerClose" id="drawerClose" aria-label="Close controls">✕</button>
+  <div>
+    <div style="height:6px;width:54px;border-radius:3px;overflow:hidden;margin-bottom:8px;
+                background:linear-gradient(#0057B7 50%, #FFD700 50%)"></div>
+    <h1>Vyshyvanka Wallpaper Generator</h1>
+    <p class="sub">Procedural cross-stitch patterns → desktop &amp; phone wallpapers.</p>
+  </div>
+
+  <fieldset>
+    <legend>Output</legend>
+    <label>Mode</label>
+    <div class="seg" id="modeSeg">
+      <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
+      <button data-mode="panel">🧵 Garment panel</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Tradition (formal traits)</legend>
+    <label for="region">Regional style</label>
+    <select id="region"></select>
+    <div class="tag" id="regionNote"></div>
+    <label>Complexity <span class="val" id="cxVal"></span></label>
+    <input type="range" id="complexity" min="1" max="5" step="1" />
+    <label>Variety <span class="val" id="vyVal"></span></label>
+    <input type="range" id="variety" min="0" max="100" step="1" />
+    <div class="tag">Low = clean &amp; repetitive · High = wild mix of motifs</div>
+  </fieldset>
+
+  <fieldset id="wallControls">
+    <legend>Wallpaper</legend>
+    <label for="res">Resolution</label>
+    <select id="res"></select>
+    <label>Layout</label>
+    <div class="seg" id="layoutSeg"></div>
+    <label>Cloth background</label>
+    <div class="seg" id="bgSeg"></div>
+    <label>Motif scale</label>
+    <div class="seg" id="scaleSeg"></div>
+  </fieldset>
+
+  <fieldset id="panelControls" class="hidden">
+    <legend>Panel shape</legend>
+    <div class="seg" id="shapeSeg"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Stitch &amp; seed</legend>
+    <label>Stitch style</label>
+    <div class="seg" id="styleSeg">
+      <button data-style="x" class="on">✕ Cross-stitch</button>
+      <button data-style="sq">▢ Filled</button>
+    </div>
+    <label for="seed">Seed (type one to reproduce a pattern)</label>
+    <div class="seedrow">
+      <input type="text" id="seed" />
+    </div>
+  </fieldset>
+
+  <div class="btns">
+    <button class="primary" id="gen">🎲 New design</button>
+    <div class="row">
+      <button id="png">Download PNG</button>
+      <button id="share">Copy link</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <div class="toolbar">
+    <button class="menuBtn" id="menuBtn">☰ Controls</button>
+    <strong id="title">—</strong>
+    <span class="tag" id="dims"></span>
+    <div class="spacer"></div>
+    <span class="tag" id="hint"></span>
+  </div>
+  <div class="stage">
+    <div class="frame"><canvas id="cv"></canvas></div>
+  </div>
+  <div class="disclaimer">
+    <b>Not authenticity.</b> A formal/structural toy: it generates patterns <i>inspired by</i>
+    documented regional traits (palette, density, geometry) of Ukrainian embroidery. It does
+    <b>not</b> define a "true" vyshyvanka, encode meaning, or reproduce specific traditional motifs.
+  </div>
+  <div id="backdrop"></div>
+</main>
+
+<script src="data.js"></script>
+<script src="generator.js"></script>
+<script src="render.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
