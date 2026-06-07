@@ -14,96 +14,106 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
 <body>
 <aside>
   <button class="drawerClose" id="drawerClose" aria-label="Close controls">✕</button>
-  <div>
-    <div style="height:6px;width:54px;border-radius:3px;overflow:hidden;margin-bottom:8px;
-                background:linear-gradient(#0057B7 50%, #FFD700 50%)"></div>
-    <h1>Vyshyvanka Wallpaper Generator</h1>
-    <p class="sub">Procedural cross-stitch patterns → desktop &amp; phone wallpapers.</p>
+  <div class="brand">
+    <div class="flagbar"></div>
+    <h1>Vyshyvanka</h1>
   </div>
 
-  <fieldset>
-    <legend>Output</legend>
-    <label>Mode</label>
-    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Output mode">
-      <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
-      <button data-mode="panel">🧵 Garment panel</button>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Tradition (formal traits)</legend>
-    <label for="region">Regional style</label>
-    <select id="region"></select>
-    <div class="tag" id="regionNote"></div>
-    <label>Detail — Minimal ↔ Ornate <span class="val" id="cxVal"></span></label>
-    <input type="range" id="complexity" min="1" max="5" step="1" />
-    <label>Variation — Calm ↔ Wild <span class="val" id="vyVal"></span></label>
-    <input type="range" id="variety" min="0" max="100" step="1" />
-    <label>Tradition ↔ Invention <span class="val" id="trVal"></span></label>
-    <input type="range" id="tradition" min="0" max="100" step="1" />
-    <label>Symmetry</label>
-    <div class="seg" id="symSeg" role="radiogroup" aria-label="Symmetry"></div>
-    <div class="tag">Sliders set the aim · Wild sets how far the 🎲 roams</div>
-  </fieldset>
-
-  <fieldset id="wallControls">
-    <legend>Wallpaper</legend>
-    <label for="res">Resolution</label>
-    <select id="res"></select>
-    <label>Layout</label>
-    <div class="seg" id="layoutSeg" role="radiogroup" aria-label="Layout"></div>
-    <label>Cloth background</label>
-    <div class="seg" id="bgSeg" role="radiogroup" aria-label="Cloth background"></div>
-    <label>Motif scale</label>
-    <div class="seg" id="scaleSeg" role="radiogroup" aria-label="Motif scale"></div>
-  </fieldset>
-
-  <fieldset id="panelControls" class="hidden">
-    <legend>Panel shape</legend>
-    <div class="seg" id="shapeSeg" role="radiogroup" aria-label="Panel shape"></div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Stitch &amp; seed</legend>
-    <label>Stitch style</label>
-    <div class="seg" id="styleSeg" role="radiogroup" aria-label="Stitch style">
-      <button data-style="x" class="on">✕ Cross-stitch</button>
-      <button data-style="sq">▢ Filled</button>
-    </div>
-    <label for="seed">Seed (type one to reproduce a pattern)</label>
-    <div class="seedrow">
-      <input type="text" id="seed" />
-    </div>
-  </fieldset>
-
-  <fieldset id="labPanel">
-    <legend><button type="button" id="labToggle" aria-expanded="false">🧪 Lab ▸</button></legend>
-    <div id="labBody" class="hidden">
-      <label>Layers <span class="val" id="labNLayersVal"></span></label>
-      <input type="range" id="labNLayers" min="1" max="4" step="1" />
-      <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
-      <input type="range" id="labLevels" min="2" max="10" step="1" />
-      <div id="labLayers"></div>
-      <button type="button" id="labReset">Reset to seed</button>
-      <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
-    </div>
-  </fieldset>
-
-  <div class="btns">
-    <button class="primary" id="gen">🎲 New design</button>
+  <div class="actionbar">
     <div class="row">
-      <button id="png">Download PNG</button>
-      <button id="share">Copy link</button>
+      <button class="primary" id="gen">🎲 New design</button>
+      <button id="undo" title="Undo last design" aria-label="Undo">↶</button>
     </div>
-    <div class="row">
-      <button id="tile">Download tile</button>
-      <button id="chart">Download chart</button>
-    </div>
-    <div class="row">
-      <button id="save">★ Save</button>
-      <button id="undo">↶ Undo</button>
-    </div>
-    <div id="favs" class="favs" aria-label="Saved designs"></div>
+    <input type="text" id="seed" placeholder="seed — type to reproduce" aria-label="Seed" />
+  </div>
+
+  <div class="acc">
+    <section class="acc-sec" data-sec="design">
+      <button class="acc-h" aria-expanded="true" aria-controls="sec-design">Design</button>
+      <div class="acc-b" id="sec-design">
+        <label for="region">Regional style</label>
+        <select id="region"></select>
+        <div class="tag" id="regionNote"></div>
+        <label>Detail — Minimal ↔ Ornate <span class="val" id="cxVal"></span></label>
+        <input type="range" id="complexity" min="1" max="5" step="1" />
+        <label>Variation — Calm ↔ Wild <span class="val" id="vyVal"></span></label>
+        <input type="range" id="variety" min="0" max="100" step="1" />
+        <label>Tradition ↔ Invention <span class="val" id="trVal"></span></label>
+        <input type="range" id="tradition" min="0" max="100" step="1" />
+        <label>Symmetry</label>
+        <div class="seg" id="symSeg" role="radiogroup" aria-label="Symmetry"></div>
+        <div class="tag">Sliders set the aim · Wild sets how far the 🎲 roams</div>
+      </div>
+    </section>
+
+    <section class="acc-sec" data-sec="output">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-output">Output</button>
+      <div class="acc-b hidden" id="sec-output">
+        <label>Mode</label>
+        <div class="seg" id="modeSeg" role="radiogroup" aria-label="Output mode">
+          <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
+          <button data-mode="panel">🧵 Garment panel</button>
+        </div>
+        <div id="wallControls">
+          <label for="res">Resolution</label>
+          <select id="res"></select>
+          <label>Layout</label>
+          <div class="seg" id="layoutSeg" role="radiogroup" aria-label="Layout"></div>
+          <label>Motif scale</label>
+          <div class="seg" id="scaleSeg" role="radiogroup" aria-label="Motif scale"></div>
+        </div>
+        <div id="panelControls" class="hidden">
+          <label>Panel shape</label>
+          <div class="seg" id="shapeSeg" role="radiogroup" aria-label="Panel shape"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="acc-sec" data-sec="style">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-style">Style</button>
+      <div class="acc-b hidden" id="sec-style">
+        <label>Stitch style</label>
+        <div class="seg" id="styleSeg" role="radiogroup" aria-label="Stitch style">
+          <button data-style="x" class="on">✕ Cross-stitch</button>
+          <button data-style="sq">▢ Filled</button>
+        </div>
+        <label>Cloth background</label>
+        <div class="seg" id="bgSeg" role="radiogroup" aria-label="Cloth background"></div>
+      </div>
+    </section>
+
+    <section class="acc-sec" data-sec="lab">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-lab">🧪 Lab</button>
+      <div class="acc-b hidden" id="sec-lab">
+        <label>Layers <span class="val" id="labNLayersVal"></span></label>
+        <input type="range" id="labNLayers" min="1" max="4" step="1" />
+        <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
+        <input type="range" id="labLevels" min="2" max="10" step="1" />
+        <div id="labLayers"></div>
+        <div class="row">
+          <button type="button" id="labReset">Reset to seed</button>
+        </div>
+        <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
+      </div>
+    </section>
+
+    <section class="acc-sec" data-sec="export">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-export">Export &amp; saved</button>
+      <div class="acc-b hidden" id="sec-export">
+        <div class="row">
+          <button id="png">Download PNG</button>
+          <button id="share">Copy link</button>
+        </div>
+        <div class="row">
+          <button id="tile">Download tile</button>
+          <button id="chart">Download chart</button>
+        </div>
+        <div class="row">
+          <button id="save">★ Save</button>
+        </div>
+        <div id="favs" class="favs" aria-label="Saved designs"></div>
+      </div>
+    </section>
   </div>
 </aside>
 

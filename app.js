@@ -64,8 +64,6 @@ function syncUI(){
     document.getElementById("labLevels").value=state.lab.levels;
     document.getElementById("labLevelsVal").textContent=state.lab.levels;
     buildLabLayers(state.lab);
-    const body=document.getElementById("labBody");
-    if(body.classList.contains("hidden")){ body.classList.remove("hidden"); document.getElementById("labToggle").setAttribute("aria-expanded","true"); document.getElementById("labToggle").textContent="🧪 Lab ▾"; }
   }
 }
 
@@ -164,7 +162,7 @@ function renderFavs(){
     const rm=document.createElement("button"); rm.className="rm"; rm.textContent="✕";
     rm.onclick=(e)=>{e.stopPropagation();const arr=loadFavs();arr.splice(idx,1);saveFavs(arr);renderFavs();};
     b.appendChild(img); b.appendChild(rm);
-    b.onclick=()=>{Object.assign(state,f.state);syncUI();generate();};
+    b.onclick=()=>{Object.assign(state,f.state);syncUI();generate();if(state.lab)openSection("lab");};
     wrap.appendChild(b);
   });
 }
@@ -228,12 +226,24 @@ function openLabFromSeed(){
   document.getElementById("labLevelsVal").textContent=G.levels;
   buildLabLayers(G);
 }
-document.getElementById("labToggle").onclick=()=>{
-  const body=document.getElementById("labBody"), open=body.classList.toggle("hidden")===false;
-  document.getElementById("labToggle").setAttribute("aria-expanded",String(open));
-  document.getElementById("labToggle").textContent=open?"🧪 Lab ▾":"🧪 Lab ▸";
-  if(open && !state.lab) openLabFromSeed();
-};
+/* ---- accordion (single-open, persisted) ---- */
+const SEC_KEY="vy_openSection";
+const SECTIONS=["design","output","style","lab","export"];
+function openSection(key){
+  if(!SECTIONS.includes(key)) key="design";
+  SECTIONS.forEach(s=>{
+    const sec=document.querySelector(`.acc-sec[data-sec="${s}"]`);
+    const h=sec.querySelector(".acc-h"), b=sec.querySelector(".acc-b");
+    const on=(s===key);
+    b.classList.toggle("hidden",!on);
+    h.setAttribute("aria-expanded",String(on));
+  });
+  try{localStorage.setItem(SEC_KEY,key);}catch{}
+  if(key==="lab" && !state.lab) openLabFromSeed();
+}
+document.querySelectorAll(".acc-h").forEach(h=>{
+  h.onclick=()=>openSection(h.closest(".acc-sec").dataset.sec);
+});
 document.getElementById("labNLayers").oninput=e=>{document.getElementById("labNLayersVal").textContent=e.target.value;};
 document.getElementById("labNLayers").onchange=e=>{
   const n=+e.target.value, G=state.lab||labCurrentGenome();
@@ -252,6 +262,9 @@ document.getElementById("drawerClose").onclick=()=>document.body.classList.remov
 /* ---- boot ---- */
 VY.app = { generate, state, _lastTile:null, _lastModel:null };
 readHash();syncUI();generate(false);renderFavs();
+let _open="design"; try{const k=localStorage.getItem(SEC_KEY); if(SECTIONS.includes(k)) _open=k;}catch{}
+if(state.lab) _open="lab";
+openSection(_open);
 
 document.getElementById("tile").onclick=()=>{
   if(!VY.app._lastTile){alert("Tile export is available for the Seamless layout.");return;}

@@ -53,6 +53,20 @@
 .labLayer .lrow{display:flex;gap:6px;align-items:center}
 .labLayer select,.labLayer input{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font:inherit;min-width:0;flex:1}
 .labLayer label{margin:6px 0 2px}
+.brand{padding-top:2px}
+.flagbar{height:6px;width:54px;border-radius:3px;overflow:hidden;margin-bottom:6px;background:linear-gradient(#0057B7 50%,#FFD700 50%)}
+.actionbar{position:sticky;top:0;z-index:6;background:var(--panel);margin:0 -18px;padding:12px 18px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.actionbar .row{display:flex;gap:8px}
+.actionbar #gen{flex:1}
+.actionbar #undo{flex:0 0 auto;width:46px;font-size:16px;line-height:1}
+.acc{display:flex;flex-direction:column;gap:8px}
+.acc-sec{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.acc-h{width:100%;text-align:left;background:var(--panel2);border:0;color:var(--accent2);text-transform:uppercase;letter-spacing:.8px;font-size:11px;padding:11px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.acc-h::after{content:"▸";color:var(--muted);font-size:12px}
+.acc-h[aria-expanded="true"]::after{content:"▾"}
+.acc-h[aria-expanded="true"]{color:#fff;background:var(--panel2)}
+.acc-b{padding:12px}
+aside{overflow-x:hidden}
   .val{color:var(--ink); float:right; font-variant-numeric:tabular-nums}
   .tag{font-size:10px; color:var(--muted)}
   .hidden{display:none !important}
