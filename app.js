@@ -20,7 +20,7 @@ const RES=[
 ];
 const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
              res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
-             tradition:20,symmetry:"d4",lab:null,viewX:null,viewY:null,viewZoom:null};
+             tradition:45,symmetry:"d4",lab:null,viewX:null,viewY:null,viewZoom:null};
 const state={...DEFAULTS};
 
 const regionSel=document.getElementById("region");
@@ -59,6 +59,7 @@ function syncUI(){
   document.getElementById("title").textContent=wall
     ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
     : `${name} · ${SHAPES.find(s=>s[0]===state.shape)[1]}`;
+  const _lp=document.getElementById("labPinned"); if(_lp) _lp.style.display=(state.lab && Array.isArray(state.lab.layers))?"":"none";
   if(state.lab && Array.isArray(state.lab.layers)){
     document.getElementById("labNLayers").value=state.lab.layers.length;
     document.getElementById("labNLayersVal").textContent=state.lab.layers.length;
@@ -70,7 +71,9 @@ function syncUI(){
 
 function generate(updateHash=true){
   pushHistory();
-  VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}|${state.lab?JSON.stringify(state.lab):""}`);
+  // NOTE: state.lab is deliberately NOT in the RNG seed — the genome is applied purely (makeFieldMotif)
+  // and shared via the URL hash, so editing the Lab changes ONLY field-motif geometry, not the whole canvas.
+  VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}`);
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setConfig({
@@ -153,7 +156,8 @@ document.getElementById("variety").onchange=()=>{resetView();generate();};
 document.getElementById("tradition").oninput=e=>{state.tradition=+e.target.value;document.getElementById("trVal").textContent=state.tradition+"%";};
 document.getElementById("tradition").onchange=()=>{resetView();generate();};
 document.getElementById("seed").onchange=e=>{resetView();state.seed=e.target.value.trim()||"vyshyvanka";generate();};
-document.getElementById("gen").onclick=()=>{resetView();state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();};
+document.getElementById("gen").onclick=()=>{resetView();state.lab=null;state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();
+  if(!document.querySelector('.acc-sec[data-sec="lab"] .acc-b').classList.contains("hidden")) openLabFromSeed();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_${state.mode==="wallpaper"?state.layout+"_"+state.res:state.shape}_${state.seed}.png`;
   a.href=(VY.app._exportCanvas||VY.cv).toDataURL("image/png");a.click();};
@@ -273,7 +277,7 @@ document.getElementById("labNLayers").onchange=e=>{
 };
 document.getElementById("labLevels").oninput=e=>{document.getElementById("labLevelsVal").textContent=e.target.value;};
 document.getElementById("labLevels").onchange=commitLab;
-document.getElementById("labReset").onclick=()=>{ resetView();state.lab=null; generate(); };
+document.getElementById("labReset").onclick=()=>{ resetView();state.lab=null; generate(); openLabFromSeed(); };
 document.getElementById("labRandom").onclick=()=>{
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
