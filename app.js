@@ -20,14 +20,14 @@ const RES=[
 ];
 const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
              res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
-             tradition:20,symmetry:"d4",lab:null};
+             tradition:20,symmetry:"d4",lab:null,vx:null,vy:null,vz:null};
 const state={...DEFAULTS};
 
 const regionSel=document.getElementById("region");
 for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].name;regionSel.appendChild(o);}
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
-function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{state[key]=v;syncUI();generate();};el.appendChild(b);});}
+function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();state[key]=v;syncUI();generate();};el.appendChild(b);});}
 buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");
 
 function syncUI(){
@@ -123,33 +123,37 @@ function generate(updateHash=true){
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
   VY.app._exportCanvas=exp; VY.app._piece=piece;
-  VY.viewport.attach(piece);
+  const rv=(state.vz)?{cx:state.vx,cy:state.vy,zoom:state.vz}:null;
+  VY.viewport.attach(piece, rv);
   if(updateHash)writeHash();
 }
 
 /* ---- shareable URL ---- */
-function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
+function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);if(state.vz){o.vox=state.vx;o.voy=state.vy;o.voz=state.vz;}const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
 function readHash(){if(!location.hash)return;const p=new URLSearchParams(location.hash.slice(1));const g=(k,d)=>p.get(k)??d;
   state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");const ci=+g("c",state.complexity); if(Number.isFinite(ci)) state.complexity=Math.max(1,Math.min(5,Math.round(ci)));
   const vi=+g("vy",state.variety); if(Number.isFinite(vi)) state.variety=Math.max(0,Math.min(100,Math.round(vi)));state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
   state.layout=g("lay",state.layout);state.bg=g("bg",state.bg);state.scale=g("sc",state.scale);state.shape=g("sh",state.shape);
   const ti=+g("tr",state.tradition); if(Number.isFinite(ti)) state.tradition=Math.max(0,Math.min(100,Math.round(ti)));
   const sy=g("sym",state.symmetry); if(sy==="d4"||sy==="d2"||sy==="loose") state.symmetry=sy;
-  const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o && typeof o==="object" && !Array.isArray(o) && (Array.isArray(o.layers)||o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }}
+  const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o && typeof o==="object" && !Array.isArray(o) && (Array.isArray(o.layers)||o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }
+  const vox=+g("vox","x"),voy=+g("voy","x"),voz=+g("voz","x");
+  if(Number.isFinite(vox)&&Number.isFinite(voy)&&Number.isFinite(voz)&&voz>0){ state.vx=vox;state.vy=voy;state.vz=voz; }}
 
 /* ---- events ---- */
-[...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;syncUI();generate();});
+function resetView(){ state.vx=state.vy=state.vz=null; }
+[...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{resetView();state.mode=b.dataset.mode;syncUI();generate();});
 [...document.getElementById("styleSeg").children].forEach(b=>b.onclick=()=>{state.style=b.dataset.style;syncUI();generate();});
-regionSel.onchange=e=>{state.region=e.target.value;syncUI();generate();};
-resSel.onchange=e=>{state.res=e.target.value;generate();};
+regionSel.onchange=e=>{resetView();state.region=e.target.value;syncUI();generate();};
+resSel.onchange=e=>{resetView();state.res=e.target.value;generate();};
 document.getElementById("complexity").oninput=e=>{state.complexity=+e.target.value;document.getElementById("cxVal").textContent=state.complexity;};
-document.getElementById("complexity").onchange=()=>generate();
+document.getElementById("complexity").onchange=()=>{resetView();generate();};
 document.getElementById("variety").oninput=e=>{state.variety=+e.target.value;document.getElementById("vyVal").textContent=state.variety+"%";};
-document.getElementById("variety").onchange=()=>generate();
+document.getElementById("variety").onchange=()=>{resetView();generate();};
 document.getElementById("tradition").oninput=e=>{state.tradition=+e.target.value;document.getElementById("trVal").textContent=state.tradition+"%";};
-document.getElementById("tradition").onchange=()=>generate();
-document.getElementById("seed").onchange=e=>{state.seed=e.target.value.trim()||"vyshyvanka";generate();};
-document.getElementById("gen").onclick=()=>{state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();};
+document.getElementById("tradition").onchange=()=>{resetView();generate();};
+document.getElementById("seed").onchange=e=>{resetView();state.seed=e.target.value.trim()||"vyshyvanka";generate();};
+document.getElementById("gen").onclick=()=>{resetView();state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");
   a.download=`vyshyvanka_${state.region}_${state.mode==="wallpaper"?state.layout+"_"+state.res:state.shape}_${state.seed}.png`;
   a.href=(VY.app._exportCanvas||VY.cv).toDataURL("image/png");a.click();};
@@ -233,7 +237,7 @@ function buildLabLayers(G){
 function commitLab(){
   const layers=[...document.querySelectorAll("#labLayers .labLayer")].map(b=>b._get());
   state.lab={ levels:+document.getElementById("labLevels").value, centerStyle:(state.lab&&state.lab.centerStyle)||"dot", layers };
-  generate();
+  resetView();generate();
 }
 function openLabFromSeed(){
   const G=labCurrentGenome();
@@ -269,7 +273,7 @@ document.getElementById("labNLayers").onchange=e=>{
 };
 document.getElementById("labLevels").oninput=e=>{document.getElementById("labLevelsVal").textContent=e.target.value;};
 document.getElementById("labLevels").onchange=commitLab;
-document.getElementById("labReset").onclick=()=>{ state.lab=null; generate(); };
+document.getElementById("labReset").onclick=()=>{ resetView();state.lab=null; generate(); };
 document.getElementById("labRandom").onclick=()=>{
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
@@ -281,7 +285,7 @@ document.getElementById("labRandom").onclick=()=>{
   document.getElementById("labLevels").value=G.levels;
   document.getElementById("labLevelsVal").textContent=G.levels;
   buildLabLayers(G);
-  generate();
+  resetView();generate();
 };
 
 /* ---- mobile drawer ---- */
@@ -292,6 +296,7 @@ document.getElementById("drawerClose").onclick=()=>document.body.classList.remov
 /* ---- boot ---- */
 VY.app = { generate, state, _lastTile:null, _lastModel:null, _exportCanvas:null, _piece:null };
 VY.viewport.init();
+VY.viewport.onSettle=(view,fit)=>{ if(fit){ state.vx=state.vy=state.vz=null; } else { state.vx=+view.cx.toFixed(2); state.vy=+view.cy.toFixed(2); state.vz=+view.zoom.toFixed(3); } writeHash(); };
 readHash();syncUI();generate(false);renderFavs();
 let _open="design"; try{const k=localStorage.getItem(SEC_KEY); if(SECTIONS.includes(k)) _open=k;}catch{}
 if(state.lab) _open="lab";

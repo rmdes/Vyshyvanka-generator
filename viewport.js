@@ -69,13 +69,17 @@ window.VY = window.VY || {};
     reraster();
   }
   function getView(){ return VP?{cx:VP.cx,cy:VP.cy,zoom:VP.zoom}:null; }
-  function fit(){ if(!PIECE) return; const [W,H]=stageSize(); VP=fitView(PIECE,W,H); reraster(); }
+  function isFit(){ if(!PIECE||!VP) return true; const [W,H]=stageSize(); const f=fitView(PIECE,W,H);
+    return Math.abs(VP.zoom-f.zoom)<1e-3 && Math.abs(VP.cx-f.cx)<1e-3 && Math.abs(VP.cy-f.cy)<1e-3; }
+  function fit(){ if(!PIECE) return; const [W,H]=stageSize(); VP=fitView(PIECE,W,H); reraster();
+    if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), true); }
   function updateHud(){ const el=document.getElementById("vpZoom"); if(el&&VP) el.textContent=Math.round(VP.zoom/(VP.fitZoom||VP.zoom)*100)+"%"; }
 
   let raf=0, settleT=0;
   function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; applyTransform(); }); }
   function settle(){ clearTimeout(settleT); settleT=setTimeout(()=>{ const [W,H]=stageSize();
-    if(transformFor(VP,W,H).cell!==curCell) reraster(); else applyTransform(); }, 130); }
+    if(transformFor(VP,W,H).cell!==curCell) reraster(); else applyTransform();
+    if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), isFit()); }, 130); }
   function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H);
     if(transformFor(VP,W,H).cell!==curCell){ reraster(); } else { schedule(); }
     settle(); }
@@ -127,5 +131,5 @@ window.VY = window.VY || {};
   }
 
   VY.viewport = { LODS, ZMAX, cellForLod, lodForZoom, screenToPattern, patternToScreen,
-                  fitView, clampView, zoomAt, transformFor, attach, init, fit, getView };
+                  fitView, clampView, zoomAt, transformFor, attach, init, fit, getView, isFit };
 })();
