@@ -91,6 +91,58 @@ function makeFiller(){
   return g;
 }
 
+/* ===================== FIELD-FUNCTION MOTIF ENGINE =====================
+ * A motif = a stack of math "layers" summed into a scalar field over
+ * symmetry-folded coordinates, then quantized to discrete stitches.
+ * PURE: makeFieldMotif(m, genome) depends only on its args (no CFG). */
+function fieldCoord(kind, ax, ay, R){
+  switch(kind){
+    case 'radial':    return Math.hypot(ax,ay)/R;
+    case 'manhattan': return (ax+ay)/(2*R);
+    case 'chebyshev': return Math.max(ax,ay)/R;
+    case 'diagonal':  return Math.abs(ax-ay)/R;
+    case 'angle':     return Math.atan2(ay,ax)/(Math.PI/2);   // 0..1 over a quadrant
+    case 'lattice':   return ((ax%2)+(ay%2))/2;               // 0,0.5,1
+    default:          return Math.hypot(ax,ay)/R;
+  }
+}
+function fieldWave(kind, t){
+  switch(kind){
+    case 'cos': return Math.cos(t*2*Math.PI);
+    case 'tri': { const p=((t%1)+1)%1; return 1-4*Math.abs(p-0.5); }
+    case 'sq':  return Math.cos(t*2*Math.PI)>=0 ? 1 : -1;
+    default:    return Math.cos(t*2*Math.PI);
+  }
+}
+function applyCenter(g, c, style, col){
+  if(style==='none') return;
+  if(style==='dot'||style==='ring'){ g[c][c]=col; return; }
+  g[c][c]=col; if(g[c-1])g[c-1][c]=col; if(g[c+1])g[c+1][c]=col;
+  if(c-1>=0)g[c][c-1]=col; if(c+1<g.length)g[c][c+1]=col;
+}
+// genome = { sym:'d4'|'d2'|'loose', layers:[{coord,wave,freq,phase,weight,slot}], levels:Int, centerStyle:str }
+function makeFieldMotif(m, G){
+  const g=newGrid(m,m), c=(m-1)/2, R=Math.max(1,c);
+  for(let y=0;y<m;y++)for(let x=0;x<m;x++){
+    let ax=Math.abs(x-c), ay=Math.abs(y-c);
+    if(G.sym==='d4' && ax<ay){ const t=ax; ax=ay; ay=t; }   // fold diagonal -> 8-fold
+    if(Math.hypot(x-c,y-c) > R+0.5) continue;               // clip to a disc
+    let F=0, wsum=0;
+    for(const L of G.layers){
+      F += L.weight*fieldWave(L.wave, fieldCoord(L.coord,ax,ay,R)*L.freq + L.phase);
+      wsum += Math.abs(L.weight);
+    }
+    F = wsum ? F/wsum : 0;                                   // normalize to ~[-1,1]
+    const band = Math.floor(((F+1)/2)*G.levels);            // 0..levels
+    if(band >= Math.ceil(G.levels/2)){
+      const L = G.layers[band % G.layers.length];
+      g[y][x] = L.slot;                                      // slot is already a 1-based thread index
+    }
+  }
+  applyCenter(g, c, G.centerStyle, G.layers[0].slot);
+  return g;
+}
+
 /* ===================== HERO MOTIFS — chart library mixed into procedural pool ===================== */
 // map semantic slots (1=primary,2=secondary,3=accent) -> palette thread indices
 function remapHero(g){
@@ -272,6 +324,7 @@ VY.gen = { composeWallpaper, composePanel, sampler };
 VY.gen.nearestDMC = nearestDMC;
 VY.gen.composeFabricTile = composeFabricTile;
 VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
+VY.gen.makeFieldMotif = makeFieldMotif;
 VY.gen.pickMotif = pickMotif;
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
 VY.gen.setConfig = (cfg) => {
