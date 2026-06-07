@@ -1,7 +1,7 @@
 # Explorable Viewport (Pillar A) — Design
 
 **Date:** 2026-06-07
-**Status:** Draft — for review (not yet through the interactive brainstorm/approval gate)
+**Status:** Approved (2026-06-07 — confirmed with user: exports stay piece-level; viewport `{cx,cy,zoom}` is shareable via the hash; first build ships the full input set)
 **Part of the larger roadmap** (Pillars A/B/C). This spec covers **Pillar A only**.
 
 ## Summary
@@ -163,8 +163,9 @@ scope here; it belongs more with Pillar B / the dual-mode "explore" identity.)
   swap so the non-interactive baseline still looks identical.
 - **Touch vs mobile drawer:** `touch-action:none` only on `#cv`; ensure the
   sidebar drawer gestures still work.
-- **Export semantics:** confirm with the user that exports remain piece-level
-  (recommended) vs. current-view.
+- **Export semantics:** RESOLVED — exports remain piece-level (whole piece,
+  regardless of view). "Capture current view" is deferred to the dual-mode
+  /explore phase.
 
 ## Out of scope (this spec)
 
