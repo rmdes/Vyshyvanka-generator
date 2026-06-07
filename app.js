@@ -226,7 +226,7 @@ function buildLabLayers(G){
 }
 function commitLab(){
   const layers=[...document.querySelectorAll("#labLayers .labLayer")].map(b=>b._get());
-  state.lab={ levels:+document.getElementById("labLevels").value, centerStyle:"dot", layers };
+  state.lab={ levels:+document.getElementById("labLevels").value, centerStyle:(state.lab&&state.lab.centerStyle)||"dot", layers };
   generate();
 }
 function openLabFromSeed(){
