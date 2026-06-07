@@ -36,8 +36,8 @@ window.VY = window.VY || {};
     return { lod, cell, s, tx:stageW/2 - vp.cx*vp.zoom, ty:stageH/2 - vp.cy*vp.zoom };
   }
 
-  let PIECE=null, VP=null, rasterCanvas=null, curCell=0;
-  const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1));
+  let PIECE=null, VP=null, rasterCanvas=null;
+  const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1)); // captured at load; a display-ratio change needs a reload
   let curDeviceCell=0;
   function maxCellFor(){ if(!PIECE) return 9999; return Math.max(1, Math.floor(16000/Math.max(PIECE.cols,PIECE.rows))); }
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
@@ -53,8 +53,8 @@ window.VY = window.VY || {};
   }
   function reraster(){
     if(raf){ cancelAnimationFrame(raf); raf=0; }
-    const [W,H]=stageSize(); const t=transformFor(VP,W,H); curCell=t.cell;
-    const dCell=Math.min(t.cell*DPR, maxCellFor());
+    const [W,H]=stageSize(); const t=transformFor(VP,W,H);
+    const dCell=Math.min(Math.round(t.cell*DPR), maxCellFor());
     const c=rasterFor(dCell); rasterCanvas=VY.cv;
     VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
     VY.ctx.clearRect(0,0,c.width,c.height); VY.ctx.drawImage(c,0,0);
@@ -78,11 +78,11 @@ window.VY = window.VY || {};
   let raf=0, settleT=0;
   function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; applyTransform(); }); }
   function settle(){ clearTimeout(settleT); settleT=setTimeout(()=>{ const [W,H]=stageSize();
-    const want=Math.min(transformFor(VP,W,H).cell*DPR, maxCellFor());
+    const want=Math.min(Math.round(transformFor(VP,W,H).cell*DPR), maxCellFor());
     if(want!==curDeviceCell) reraster(); else applyTransform();
     if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), isFit()); }, 130); }
   function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H);
-    const want=Math.min(transformFor(VP,W,H).cell*DPR, maxCellFor());
+    const want=Math.min(Math.round(transformFor(VP,W,H).cell*DPR), maxCellFor());
     if(want!==curDeviceCell){ reraster(); } else { schedule(); } settle(); }
   function init(){
     const stage=document.querySelector(".stage");
