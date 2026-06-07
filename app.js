@@ -18,9 +18,10 @@ const RES=[
   ["phone","Phone 1170×2532",1170,2532],
   ["sq","Square 1080×1080",1080,1080],
 ];
-const state={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
+const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
              res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
              tradition:20,symmetry:"d4",lab:null};
+const state={...DEFAULTS};
 
 const regionSel=document.getElementById("region");
 for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].name;regionSel.appendChild(o);}
@@ -174,6 +175,14 @@ document.getElementById("save").onclick=()=>{
   arr.unshift({seed:state.seed, region:state.region, state:{...state}, thumb});
   if(!saveFavs(arr.slice(0,12))) alert("Couldn't save favorite (storage full or unavailable).");
   renderFavs();
+};
+
+document.getElementById("resetAll").onclick=()=>{
+  if(!confirm("Reset everything? This clears your saved favorites and returns all controls to defaults.")) return;
+  try{localStorage.removeItem(FAV_KEY);localStorage.removeItem(SEC_KEY);}catch{}
+  Object.assign(state,DEFAULTS,{lab:null});
+  history.replaceState(null,"",location.pathname+location.search);
+  syncUI(); generate(false); renderFavs(); openSection("design");
 };
 
 /* ---- undo (history stack) ---- */
