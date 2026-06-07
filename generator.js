@@ -126,7 +126,7 @@ function makeFieldMotif(m, G){
   for(let y=0;y<m;y++)for(let x=0;x<m;x++){
     let ax=Math.abs(x-c), ay=Math.abs(y-c);
     if(G.sym==='d4' && ax<ay){ const t=ax; ax=ay; ay=t; }   // fold diagonal -> 8-fold
-    if(Math.hypot(x-c,y-c) > R+0.5) continue;               // clip to a disc
+    if(G.sym!=='loose' && Math.hypot(x-c,y-c) > R+0.5) continue;   // d4/d2 clip to a disc; loose fills the square
     let F=0, wsum=0;
     for(const L of G.layers){
       F += L.weight*fieldWave(L.wave, fieldCoord(L.coord,ax,ay,R)*L.freq + L.phase);

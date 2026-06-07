@@ -6,6 +6,7 @@ const SHAPES=[["sleeve","Sleeve band"],["collar","Collar / cuff"],["rushnyk","Ru
 const LAYOUTS=[["fabric","Seamless"],["bordered","Border frame"],["runner","Side runner"],["medallion","Medallion"]];
 const BGS=[["linen","Linen"],["charcoal","Charcoal"],["black","Black"],["indigo","Indigo"]];
 const SCALES=[["small","S"],["medium","M"],["large","L"]];
+const SYMS=[["d4","8-fold"],["d2","4-fold"],["loose","Loose"]];
 const dpr=window.devicePixelRatio||1;
 const RES=[
   ["screen",`This screen (${Math.round(screen.width*dpr)}×${Math.round(screen.height*dpr)})`,Math.round(screen.width*dpr),Math.round(screen.height*dpr)],
@@ -26,7 +27,7 @@ for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
 function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{state[key]=v;syncUI();generate();};el.appendChild(b);});}
-buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");
+buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");
 
 function syncUI(){
   regionSel.value=state.region;
@@ -39,6 +40,9 @@ function syncUI(){
   cx.setAttribute("aria-valuetext",`Complexity ${state.complexity} of 5`);
   const vy=document.getElementById("variety");
   vy.setAttribute("aria-valuetext",`Variety ${state.variety} percent`);
+  document.getElementById("tradition").value=state.tradition;
+  document.getElementById("trVal").textContent=state.tradition+"%";
+  document.getElementById("tradition").setAttribute("aria-valuetext",`Tradition to invention ${state.tradition} percent`);
   document.getElementById("seed").value=state.seed;
   resSel.value=state.res;
   const wall=state.mode==="wallpaper";
@@ -48,7 +52,7 @@ function syncUI(){
   const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
   [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
   [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
-  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale"};
+  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry"};
   for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
   const name=VY.REGIONS[state.region].name.split(" — ")[0];
   document.getElementById("title").textContent=wall
@@ -128,6 +132,8 @@ document.getElementById("complexity").oninput=e=>{state.complexity=+e.target.val
 document.getElementById("complexity").onchange=()=>generate();
 document.getElementById("variety").oninput=e=>{state.variety=+e.target.value;document.getElementById("vyVal").textContent=state.variety+"%";};
 document.getElementById("variety").onchange=()=>generate();
+document.getElementById("tradition").oninput=e=>{state.tradition=+e.target.value;document.getElementById("trVal").textContent=state.tradition+"%";};
+document.getElementById("tradition").onchange=()=>generate();
 document.getElementById("seed").onchange=e=>{state.seed=e.target.value.trim()||"vyshyvanka";generate();};
 document.getElementById("gen").onclick=()=>{state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");

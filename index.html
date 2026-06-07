@@ -35,11 +35,15 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     <label for="region">Regional style</label>
     <select id="region"></select>
     <div class="tag" id="regionNote"></div>
-    <label>Complexity <span class="val" id="cxVal"></span></label>
+    <label>Detail — Minimal ↔ Ornate <span class="val" id="cxVal"></span></label>
     <input type="range" id="complexity" min="1" max="5" step="1" />
-    <label>Variety <span class="val" id="vyVal"></span></label>
+    <label>Variation — Calm ↔ Wild <span class="val" id="vyVal"></span></label>
     <input type="range" id="variety" min="0" max="100" step="1" />
-    <div class="tag">Low = clean &amp; repetitive · High = wild mix of motifs</div>
+    <label>Tradition ↔ Invention <span class="val" id="trVal"></span></label>
+    <input type="range" id="tradition" min="0" max="100" step="1" />
+    <label>Symmetry</label>
+    <div class="seg" id="symSeg" role="radiogroup" aria-label="Symmetry"></div>
+    <div class="tag">Sliders set the aim · Wild sets how far the 🎲 roams</div>
   </fieldset>
 
   <fieldset id="wallControls">
