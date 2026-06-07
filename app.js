@@ -65,7 +65,6 @@ function generate(updateHash=true){
     region:state.region,
     variety:state.variety/100,
     dens,
-    decoP:0.25+dens*0.13,
   });
   const seedNum = VY.gen.hashStr(state.seed);
   VY.app._lastTile=null;
@@ -109,8 +108,8 @@ function generate(updateHash=true){
 /* ---- shareable URL ---- */
 function writeHash(){const p=new URLSearchParams({m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape});history.replaceState(null,"","#"+p.toString());}
 function readHash(){if(!location.hash)return;const p=new URLSearchParams(location.hash.slice(1));const g=(k,d)=>p.get(k)??d;
-  state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");state.complexity=+g("c",state.complexity);
-  state.variety=+g("vy",state.variety);state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
+  state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");const ci=+g("c",state.complexity); if(Number.isFinite(ci)) state.complexity=ci;
+  const vi=+g("vy",state.variety); if(Number.isFinite(vi)) state.variety=vi;state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
   state.layout=g("lay",state.layout);state.bg=g("bg",state.bg);state.scale=g("sc",state.scale);state.shape=g("sh",state.shape);}
 
 /* ---- events ---- */
