@@ -1,0 +1,11 @@
+# Generated wallpaper / pattern exports
+vyshyvanka_*.png
+*.png
+
+# OS / editor cruft
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/
