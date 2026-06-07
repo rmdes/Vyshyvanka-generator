@@ -46,6 +46,22 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
       </div>
     </section>
 
+    <section class="acc-sec" data-sec="lab">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-lab">🧪 Lab</button>
+      <div class="acc-b hidden" id="sec-lab">
+        <label>Layers <span class="val" id="labNLayersVal"></span></label>
+        <input type="range" id="labNLayers" min="1" max="4" step="1" />
+        <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
+        <input type="range" id="labLevels" min="2" max="10" step="1" />
+        <div id="labLayers"></div>
+        <div class="row">
+          <button type="button" id="labRandom">🎲 Randomize</button>
+          <button type="button" id="labReset">Reset to seed</button>
+        </div>
+        <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
+      </div>
+    </section>
+
     <section class="acc-sec" data-sec="output">
       <button class="acc-h" aria-expanded="false" aria-controls="sec-output">Output</button>
       <div class="acc-b hidden" id="sec-output">
@@ -79,22 +95,6 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
         </div>
         <label>Cloth background</label>
         <div class="seg" id="bgSeg" role="radiogroup" aria-label="Cloth background"></div>
-      </div>
-    </section>
-
-    <section class="acc-sec" data-sec="lab">
-      <button class="acc-h" aria-expanded="false" aria-controls="sec-lab">🧪 Lab</button>
-      <div class="acc-b hidden" id="sec-lab">
-        <label>Layers <span class="val" id="labNLayersVal"></span></label>
-        <input type="range" id="labNLayers" min="1" max="4" step="1" />
-        <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
-        <input type="range" id="labLevels" min="2" max="10" step="1" />
-        <div id="labLayers"></div>
-        <div class="row">
-          <button type="button" id="labRandom">🎲 Randomize</button>
-          <button type="button" id="labReset">Reset to seed</button>
-        </div>
-        <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
       </div>
     </section>
 

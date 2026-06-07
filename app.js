@@ -239,7 +239,7 @@ function openLabFromSeed(){
 }
 /* ---- accordion (single-open, persisted) ---- */
 const SEC_KEY="vy_openSection";
-const SECTIONS=["design","output","style","lab","export"];
+const SECTIONS=["design","lab","output","style","export"];
 function openSection(key){
   if(!SECTIONS.includes(key)) key="design";
   SECTIONS.forEach(s=>{
