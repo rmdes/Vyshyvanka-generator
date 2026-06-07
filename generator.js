@@ -91,6 +91,24 @@ function makeFiller(){
   return g;
 }
 
+/* ===================== HERO MOTIFS — chart library mixed into procedural pool ===================== */
+// map semantic slots (1=primary,2=secondary,3=accent) -> palette thread indices
+function remapHero(g){
+  const P=CFG.P, slot=[0, P.colorBias[0]+1, (P.colorBias[1]??P.colorBias[0])+1, P.threads.length];
+  return g.map(row=>{const r=new Int8Array(row.length);
+    for(let x=0;x<row.length;x++){const s=row[x]; r[x]=s?slot[Math.min(s,3)]:0;} return r;});
+}
+function heroForRegion(region){
+  return (VY.HERO_MOTIFS||[]).filter(h=>!h.regions.length||h.regions.includes(region));
+}
+// unified motif source: hero vs procedural, ratio driven by Variety
+function pickMotif(m){
+  const v=CFG.variety, pool=heroForRegion(CFG.region);
+  const useHero = pool.length && RNG() > (0.25 + v*0.6);
+  if(useHero){ return remapHero(pick(pool).grid); }
+  return makeMotif(m);
+}
+
 /* ===================== bands ===================== */
 function borderBand(cols){
   const P=CFG.P, kind=pick(["diamonds","zigzag","meander","hatch"]);
@@ -124,9 +142,9 @@ function separator(cols){
   const g=newGrid(cols,1);for(let x=0;x<cols;x++)if(x%2===0)g[0][x]=cA;return g;
 }
 function mainBand(cols,m){
-  const motif=makeMotif(m),pad=1,gap=Math.max(1,Math.round(m*(0.3+CFG.variety*0.3))),period=m+gap;
+  const motif=pickMotif(m),pad=1,gap=Math.max(1,Math.round(m*(0.3+CFG.variety*0.3))),period=m+gap;
   const count=Math.max(1,Math.floor((cols+gap)/period)),total=count*period-gap,start=Math.floor((cols-total)/2);
-  const g=newGrid(cols,m+pad*2),alt=CFG.variety>0.5?makeMotif(m):motif;
+  const g=newGrid(cols,m+pad*2),alt=CFG.variety>0.5?pickMotif(m):motif;
   for(let i=0;i<count;i++)blit(g,(i%2?alt:motif),start+i*period,pad);
   return g;
 }
@@ -148,7 +166,7 @@ function composePanel(shape){
 }
 function sampler(){
   const P=CFG.P, G=[3,3,4,4,5][CFG.dens-1],m=11,gap=2,cell=m+gap,cols=G*cell+gap,rows=G*cell+gap,grid=newGrid(cols,rows);
-  for(let r=0;r<G;r++)for(let c=0;c<G;c++)blit(grid,makeMotif(m),gap+c*cell,gap+r*cell);
+  for(let r=0;r<G;r++)for(let c=0;c<G;c++)blit(grid,pickMotif(m),gap+c*cell,gap+r*cell);
   const cA=P.colorBias[0]+1;for(let x=0;x<cols;x++){grid[0][x]=cA;grid[rows-1][x]=cA;}for(let y=0;y<rows;y++){grid[y][0]=cA;grid[y][cols-1]=cA;}
   return {grid,cols,rows,palette:P};
 }
@@ -164,7 +182,7 @@ function composeWallpaper(W,H,layout,scaleKey){
   if(layout==="fabric"){
     const mm=[9,11,13][{small:0,medium:1,large:2}[scaleKey]];
     const setN=Math.max(1,1+Math.round(v*3));
-    const motifs=[];for(let i=0;i<setN;i++)motifs.push(makeMotif(mm));
+    const motifs=[];for(let i=0;i<setN;i++)motifs.push(pickMotif(mm));
     const latt=pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]);
     const gap=Math.max(2,Math.round(mm*(0.3+(chance(v)?0.35:0))));
     const period=mm+gap;
@@ -188,14 +206,14 @@ function composeWallpaper(W,H,layout,scaleKey){
     blit(grid,top,0,margin); blit(grid,top,0,rows-margin-top.length);
     const side=transpose(borderStrip(rows,layers));
     blit(grid,side,margin,0); blit(grid,side,cols-margin-side[0].length,0);
-    const inset=margin+top.length+1, cmA=makeMotif(m+2), cmB=makeMotif(m+2);
+    const inset=margin+top.length+1, cmA=pickMotif(m+2), cmB=pickMotif(m+2);
     blit(grid,cmA,inset,inset); blit(grid,cmB,cols-inset-(m+2),inset);
     blit(grid,cmB,inset,rows-inset-(m+2)); blit(grid,cmA,cols-inset-(m+2),rows-inset-(m+2));
   }
   else if(layout==="runner"){
     const mm=m+2,ribW=mm+4,ribbon=newGrid(ribW,rows),cEdge=pick(P.colorBias)+1;
     const gap=Math.max(2,Math.round(mm*(0.4+v*0.3))),period=mm+gap,startY=Math.round((rows%period)/2);
-    let i=0;for(let gy=startY;gy+mm<=rows;gy+=period,i++) blit(ribbon,makeMotif(mm),Math.round((ribW-mm)/2),gy);
+    let i=0;for(let gy=startY;gy+mm<=rows;gy+=period,i++) blit(ribbon,pickMotif(mm),Math.round((ribW-mm)/2),gy);
     for(let y=0;y<rows;y++){ribbon[y][0]=cEdge;ribbon[y][ribW-1]=cEdge;}
     const x0=Math.round(cols*0.07);
     blit(grid,ribbon,x0,0);
@@ -203,9 +221,9 @@ function composeWallpaper(W,H,layout,scaleKey){
   }
   else {
     const big=(Math.round(Math.min(cols,rows)*0.5)|1);
-    blit(grid,makeMotif(big),Math.round((cols-big)/2),Math.round((rows-big)/2));
+    blit(grid,makeMotif(big),Math.round((cols-big)/2),Math.round((rows-big)/2)); // keep procedural: a small hero grid would look sparse at giant centerpiece size
     const pad=Math.max(3,Math.round(rows*0.06));
-    const cmA=makeMotif(m+2),cmB=makeMotif(m+2);
+    const cmA=pickMotif(m+2),cmB=pickMotif(m+2);
     blit(grid,cmA,pad,pad);blit(grid,cmB,cols-pad-(m+2),pad);
     blit(grid,cmB,pad,rows-pad-(m+2));blit(grid,cmA,cols-pad-(m+2),rows-pad-(m+2));
     const frame=transpose(borderStrip(rows,1));blit(grid,frame,1,0);blit(grid,frame,cols-frame[0].length-1,0);
@@ -223,7 +241,7 @@ function composeFabricTile(scaleKey){
   const rows=latt==="straight"?period:period*2;
   const grid=newGrid(cols,rows);
   const setN=Math.max(1,1+Math.round(v*3)), motifs=[];
-  for(let i=0;i<setN;i++) motifs.push(makeMotif(mm));
+  for(let i=0;i<setN;i++) motifs.push(pickMotif(mm));
   const filler=(CFG.dens>=3||v>0.45)?makeFiller():null;
   let row=0;
   for(let gy=0; gy<rows; gy+=period, row++){
@@ -242,6 +260,7 @@ function composeFabricTile(scaleKey){
 VY.gen = { composeWallpaper, composePanel, sampler };
 VY.gen.composeFabricTile = composeFabricTile;
 VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
+VY.gen.pickMotif = pickMotif;
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
 VY.gen.setConfig = (cfg) => {
   Object.assign(CFG, cfg);

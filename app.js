@@ -56,6 +56,7 @@ function generate(updateHash=true){
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setConfig({
     P,
+    region:state.region,
     variety:state.variety/100,
     dens,
     decoP:0.25+dens*0.13,
