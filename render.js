@@ -17,8 +17,9 @@ function drawGrid(model, cell, ox, oy, style, seedNum){
   if (cell >= 5){
     const dark = lum(palette.bg) > 0.5;
     ctx.fillStyle = dark ? "rgba(90,70,40,.07)" : "rgba(240,231,214,.06)";
+    const hole = Math.max(1, cell*0.16);
     for (let y=0;y<rows;y++) for (let x=0;x<cols;x++){
-      const cx = ox+x*cell, cy = oy+y*cell, hole = Math.max(1, cell*0.16);
+      const cx = ox+x*cell, cy = oy+y*cell;
       ctx.fillRect(cx+cell/2-hole/2, cy+cell/2-hole/2, hole, hole); // weave hole
     }
   }
