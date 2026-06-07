@@ -154,11 +154,12 @@ function sampleGenome(P, aim){
   const nLayers=Math.max(1, Math.min(4, Math.round(1 + (ornate-1)*0.6 + tr*1.5)));
   const layers=[];
   for(let i=0;i<nLayers;i++){
+    // tradition unlocks chaos progressively: exotic coords >0.4, square waves >0.5, free freq/phase >=0.3
     const coord = pick(tr>0.4 ? coordsInv : coordsTrad);
     const wave  = pick(tr>0.5 ? ['cos','tri','sq'] : ['cos','tri']);
     const freq  = tr<0.3 ? ri(1,3) : (1 + RNG()*wild*(1+tr*5));
     const phase = (tr<0.3?0:RNG()) * wild;
-    const weight= 0.5 + RNG()*0.8;
+    const weight= (1 - 0.5*wild) + RNG()*wild*1.2;   // wild widens layer-weight spread everywhere
     const slot  = pick(P.colorBias)+1;            // 1-based thread index
     layers.push({coord,wave,freq,phase,weight,slot});
   }
