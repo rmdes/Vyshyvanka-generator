@@ -98,15 +98,16 @@ window.VY = window.VY || {};
     stage.addEventListener("dblclick",(e)=>{ if(!PIECE) return; const r=stage.getBoundingClientRect();
       VP=zoomAt(VP, e.shiftKey?0.5:2, e.clientX-r.left, e.clientY-r.top, r.width, r.height); liveCommit(); });
     let pts=new Map(), pinch0=0, pinchVP=null, pmid=null;
-    stage.addEventListener("pointerdown",(e)=>{ if(e.pointerType!=="touch")return; pts.set(e.pointerId,e); });
-    stage.addEventListener("pointermove",(e)=>{ if(e.pointerType!=="touch"||!pts.has(e.pointerId))return; pts.set(e.pointerId,e);
+    stage.addEventListener("pointerdown",(e)=>{ if(e.pointerType!=="touch")return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); });
+    stage.addEventListener("pointermove",(e)=>{ if(e.pointerType!=="touch"||!pts.has(e.pointerId))return;
+      const p=pts.get(e.pointerId); const lx=p.x, ly=p.y; p.x=e.clientX; p.y=e.clientY;
       const arr=[...pts.values()];
       if(pts.size===2){ const [a,b]=arr; const r=stage.getBoundingClientRect();
-        const dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-        const mx=(a.clientX+b.clientX)/2-r.left, my=(a.clientY+b.clientY)/2-r.top;
+        const dist=Math.hypot(a.x-b.x,a.y-b.y);
+        const mx=(a.x+b.x)/2-r.left, my=(a.y+b.y)/2-r.top;
         if(!pinch0){ pinch0=dist; pinchVP=VP; pmid=[mx,my]; }
         else { VP=zoomAt(pinchVP, dist/pinch0, pmid[0], pmid[1], r.width, r.height); liveCommit(); }
-      } else if(pts.size===1){ const a=arr[0]; if(a._lx!=null){ VP={...VP, cx:VP.cx-(a.clientX-a._lx)/VP.zoom, cy:VP.cy-(a.clientY-a._ly)/VP.zoom}; liveCommit(); } a._lx=a.clientX; a._ly=a.clientY; }
+      } else if(pts.size===1){ VP={...VP, cx:VP.cx-(e.clientX-lx)/VP.zoom, cy:VP.cy-(e.clientY-ly)/VP.zoom}; liveCommit(); }
     });
     const tup=(e)=>{ if(e.pointerType!=="touch")return; pts.delete(e.pointerId); if(pts.size<2){ pinch0=0; pinchVP=null; } };
     stage.addEventListener("pointerup",tup); stage.addEventListener("pointercancel",tup);
