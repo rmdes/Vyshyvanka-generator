@@ -220,7 +220,7 @@ function composeFabricTile(scaleKey){
   const gap=Math.max(2,Math.round(mm*0.35)), period=mm+gap;
   const latt=pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]);
   const cols=latt==="straight"?period:period*2;
-  const rows=latt==="diamond"?Math.max(period, Math.round(period*1.1)):period;
+  const rows=latt==="straight"?period:period*2;
   const grid=newGrid(cols,rows);
   const setN=Math.max(1,1+Math.round(v*3)), motifs=[];
   for(let i=0;i<setN;i++) motifs.push(makeMotif(mm));
