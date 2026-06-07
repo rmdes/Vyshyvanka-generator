@@ -178,6 +178,62 @@ document.getElementById("undo").onclick=()=>{
   restoring=true; Object.assign(state,prev); syncUI(); generate(); restoring=false;
 };
 
+/* ---- Lab panel (genome overrides) ---- */
+const LAB_COORDS=["radial","manhattan","chebyshev","diagonal","angle","lattice"];
+const LAB_WAVES=["cos","tri","sq"];
+function labCurrentGenome(){
+  // derive a starting genome from the current seed+aim so the Lab opens pre-filled
+  const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
+  VY.gen.setSeed(state.seed+"|lab");
+  return VY.gen.sampleGenome(P,{ornate:dens,wild:state.variety/100,tradition:state.tradition/100,symmetry:state.symmetry});
+}
+function buildLabLayers(G){
+  const host=document.getElementById("labLayers"); host.innerHTML="";
+  G.layers.forEach((L,i)=>{
+    const box=document.createElement("div"); box.className="labLayer";
+    const sel=(opts,val)=>{const s=document.createElement("select");opts.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});return s;};
+    const num=(v,step,min,max)=>{const n=document.createElement("input");n.type="number";n.value=v;n.step=step;if(min!=null)n.min=min;if(max!=null)n.max=max;return n;};
+    const coord=sel(LAB_COORDS,L.coord), wave=sel(LAB_WAVES,L.wave);
+    const freq=num(L.freq,0.1), phase=num(L.phase,0.05), weight=num(L.weight,0.1,0), slot=num(L.slot,1,1);
+    box.innerHTML=`<label>Layer ${i+1}</label>`;
+    const row1=document.createElement("div");row1.className="lrow";row1.append(coord,wave);
+    const row2=document.createElement("div");row2.className="lrow";row2.append(freq,phase);
+    const row3=document.createElement("div");row3.className="lrow";row3.append(weight,slot);
+    box.append(row1,row2,row3); host.appendChild(box);
+    [coord,wave,freq,phase,weight,slot].forEach(el=>el.onchange=commitLab);
+    box._get=()=>({coord:coord.value,wave:wave.value,freq:+freq.value,phase:+phase.value,weight:+weight.value,slot:Math.max(1,Math.round(+slot.value))});
+  });
+}
+function commitLab(){
+  const layers=[...document.querySelectorAll("#labLayers .labLayer")].map(b=>b._get());
+  state.lab={ sym:state.symmetry, levels:+document.getElementById("labLevels").value, centerStyle:"dot", layers };
+  generate();
+}
+function openLabFromSeed(){
+  const G=labCurrentGenome();
+  document.getElementById("labNLayers").value=G.layers.length;
+  document.getElementById("labNLayersVal").textContent=G.layers.length;
+  document.getElementById("labLevels").value=G.levels;
+  document.getElementById("labLevelsVal").textContent=G.levels;
+  buildLabLayers(G);
+}
+document.getElementById("labToggle").onclick=()=>{
+  const body=document.getElementById("labBody"), open=body.classList.toggle("hidden")===false;
+  document.getElementById("labToggle").setAttribute("aria-expanded",String(open));
+  document.getElementById("labToggle").textContent=open?"🧪 Lab ▾":"🧪 Lab ▸";
+  if(open && !state.lab) openLabFromSeed();
+};
+document.getElementById("labNLayers").oninput=e=>{document.getElementById("labNLayersVal").textContent=e.target.value;};
+document.getElementById("labNLayers").onchange=e=>{
+  const n=+e.target.value, G=state.lab||labCurrentGenome();
+  const layers=[]; for(let i=0;i<n;i++) layers.push(G.layers[i]||G.layers[G.layers.length-1]);
+  buildLabLayers({...G,layers}); commitLab();
+};
+document.getElementById("labLevels").oninput=e=>{document.getElementById("labLevelsVal").textContent=e.target.value;};
+document.getElementById("labLevels").onchange=commitLab;
+document.getElementById("labReset").onclick=()=>{ state.lab=null; generate(); };
+
 /* ---- mobile drawer ---- */
 document.getElementById("menuBtn").onclick=()=>document.body.classList.toggle("menu-open");
 document.getElementById("backdrop").onclick=()=>document.body.classList.remove("menu-open");

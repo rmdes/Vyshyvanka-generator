@@ -76,6 +76,19 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     </div>
   </fieldset>
 
+  <fieldset id="labPanel">
+    <legend><button type="button" id="labToggle" aria-expanded="false">🧪 Lab ▸</button></legend>
+    <div id="labBody" class="hidden">
+      <label>Layers <span class="val" id="labNLayersVal"></span></label>
+      <input type="range" id="labNLayers" min="1" max="4" step="1" />
+      <label>Color bands (levels) <span class="val" id="labLevelsVal"></span></label>
+      <input type="range" id="labLevels" min="2" max="10" step="1" />
+      <div id="labLayers"></div>
+      <button type="button" id="labReset">Reset to seed</button>
+      <div class="tag">Editing the Lab pins this exact genome (overrides the dice). Reset returns to seed-driven motifs.</div>
+    </div>
+  </fieldset>
+
   <div class="btns">
     <button class="primary" id="gen">🎲 New design</button>
     <div class="row">
