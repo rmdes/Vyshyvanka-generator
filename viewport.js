@@ -37,14 +37,13 @@ window.VY = window.VY || {};
   }
 
   let PIECE=null, VP=null, rasterCanvas=null, curCell=0;
+  const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1));
+  let curDeviceCell=0;
+  function maxCellFor(){ if(!PIECE) return 9999; return Math.max(1, Math.floor(16000/Math.max(PIECE.cols,PIECE.rows))); }
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
-  function applyTransform(){
-    if(!rasterCanvas) return;
-    const [W,H]=stageSize(); const t=transformFor(VP,W,H);
-    const k=t.cell/curCell; // raster rendered at curCell vs the LOD cell
-    rasterCanvas.style.transform=`translate(${t.tx}px,${t.ty}px) scale(${t.s*k})`;
-    updateHud();
-  }
+  function applyTransform(){ if(!rasterCanvas) return; const [W,H]=stageSize(); const t=transformFor(VP,W,H);
+    const shownCell=curDeviceCell/DPR; const k=t.cell/shownCell;
+    rasterCanvas.style.transform=`translate(${t.tx}px,${t.ty}px) scale(${t.s*k})`; updateHud(); }
   let cache=new Map(); const CACHE_MAX=6;
   function rasterFor(cell){
     if(cache.has(cell)){ const c=cache.get(cell); cache.delete(cell); cache.set(cell,c); return c; }
@@ -55,11 +54,12 @@ window.VY = window.VY || {};
   function reraster(){
     if(raf){ cancelAnimationFrame(raf); raf=0; }
     const [W,H]=stageSize(); const t=transformFor(VP,W,H); curCell=t.cell;
-    const c=rasterFor(curCell);
+    const dCell=Math.min(t.cell*DPR, maxCellFor());
+    const c=rasterFor(dCell); rasterCanvas=VY.cv;
     VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
     VY.ctx.clearRect(0,0,c.width,c.height); VY.ctx.drawImage(c,0,0);
-    VY.cv.style.width=c.width+"px"; VY.cv.style.height=c.height+"px"; rasterCanvas=VY.cv;
-    applyTransform();
+    VY.cv.style.width=(c.width/DPR)+"px"; VY.cv.style.height=(c.height/DPR)+"px";
+    curDeviceCell=dCell; applyTransform();
   }
   function attach(piece, restoreView){
     cache=new Map();
@@ -78,11 +78,12 @@ window.VY = window.VY || {};
   let raf=0, settleT=0;
   function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; applyTransform(); }); }
   function settle(){ clearTimeout(settleT); settleT=setTimeout(()=>{ const [W,H]=stageSize();
-    if(transformFor(VP,W,H).cell!==curCell) reraster(); else applyTransform();
+    const want=Math.min(transformFor(VP,W,H).cell*DPR, maxCellFor());
+    if(want!==curDeviceCell) reraster(); else applyTransform();
     if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), isFit()); }, 130); }
   function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H);
-    if(transformFor(VP,W,H).cell!==curCell){ reraster(); } else { schedule(); }
-    settle(); }
+    const want=Math.min(transformFor(VP,W,H).cell*DPR, maxCellFor());
+    if(want!==curDeviceCell){ reraster(); } else { schedule(); } settle(); }
   function init(){
     const stage=document.querySelector(".stage");
     stage.addEventListener("wheel",(e)=>{ if(!PIECE) return; e.preventDefault();
