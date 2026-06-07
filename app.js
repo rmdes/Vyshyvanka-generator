@@ -58,6 +58,15 @@ function syncUI(){
   document.getElementById("title").textContent=wall
     ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
     : `${name} · ${SHAPES.find(s=>s[0]===state.shape)[1]}`;
+  if(state.lab){
+    document.getElementById("labNLayers").value=state.lab.layers.length;
+    document.getElementById("labNLayersVal").textContent=state.lab.layers.length;
+    document.getElementById("labLevels").value=state.lab.levels;
+    document.getElementById("labLevelsVal").textContent=state.lab.levels;
+    buildLabLayers(state.lab);
+    const body=document.getElementById("labBody");
+    if(body.classList.contains("hidden")){ body.classList.remove("hidden"); document.getElementById("labToggle").setAttribute("aria-expanded","true"); document.getElementById("labToggle").textContent="🧪 Lab ▾"; }
+  }
 }
 
 function generate(updateHash=true){
