@@ -134,7 +134,7 @@ document.getElementById("share").onclick=async()=>{writeHash();const btn=documen
 /* ---- favorites (localStorage) ---- */
 const FAV_KEY="vy_favorites";
 const loadFavs=()=>{try{return JSON.parse(localStorage.getItem(FAV_KEY))||[];}catch{return[];}};
-const saveFavs=(f)=>localStorage.setItem(FAV_KEY,JSON.stringify(f));
+const saveFavs=(f)=>{try{localStorage.setItem(FAV_KEY,JSON.stringify(f));return true;}catch{return false;}};
 function renderFavs(){
   const wrap=document.getElementById("favs"); wrap.innerHTML="";
   loadFavs().forEach((f,idx)=>{
@@ -148,10 +148,13 @@ function renderFavs(){
   });
 }
 document.getElementById("save").onclick=()=>{
-  const thumb=VY.cv.toDataURL("image/png");
+  const tc=document.createElement("canvas"); tc.width=108; tc.height=72;
+  tc.getContext("2d").drawImage(VY.cv,0,0,108,72);
+  const thumb=tc.toDataURL("image/png");
   const arr=loadFavs();
   arr.unshift({seed:state.seed, region:state.region, state:{...state}, thumb});
-  saveFavs(arr.slice(0,12)); renderFavs();
+  if(!saveFavs(arr.slice(0,12))) alert("Couldn't save favorite (storage full or unavailable).");
+  renderFavs();
 };
 
 /* ---- undo (history stack) ---- */
