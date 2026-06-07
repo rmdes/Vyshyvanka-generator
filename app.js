@@ -185,7 +185,7 @@ function labCurrentGenome(){
   // derive a starting genome from the current seed+aim so the Lab opens pre-filled
   const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
-  VY.gen.setSeed(state.seed+"|lab");
+  VY.gen.setSeed(state.seed+"|lab");  // transient reseed; safe because generate() always reseeds before any render
   return VY.gen.sampleGenome(P,{ornate:dens,wild:state.variety/100,tradition:state.tradition/100,symmetry:state.symmetry});
 }
 function buildLabLayers(G){
@@ -196,6 +196,7 @@ function buildLabLayers(G){
     const num=(v,step,min,max)=>{const n=document.createElement("input");n.type="number";n.value=v;n.step=step;if(min!=null)n.min=min;if(max!=null)n.max=max;return n;};
     const coord=sel(LAB_COORDS,L.coord), wave=sel(LAB_WAVES,L.wave);
     const freq=num(L.freq,0.1), phase=num(L.phase,0.05), weight=num(L.weight,0.1,0), slot=num(L.slot,1,1);
+    [[coord,"coordinate"],[wave,"waveform"],[freq,"frequency"],[phase,"phase"],[weight,"weight"],[slot,"color slot"]].forEach(([el,name])=>{el.title=name;el.setAttribute("aria-label",`Layer ${i+1} ${name}`);});
     box.innerHTML=`<label>Layer ${i+1}</label>`;
     const row1=document.createElement("div");row1.className="lrow";row1.append(coord,wave);
     const row2=document.createElement("div");row2.className="lrow";row2.append(freq,phase);
@@ -207,7 +208,7 @@ function buildLabLayers(G){
 }
 function commitLab(){
   const layers=[...document.querySelectorAll("#labLayers .labLayer")].map(b=>b._get());
-  state.lab={ sym:state.symmetry, levels:+document.getElementById("labLevels").value, centerStyle:"dot", layers };
+  state.lab={ levels:+document.getElementById("labLevels").value, centerStyle:"dot", layers };
   generate();
 }
 function openLabFromSeed(){
