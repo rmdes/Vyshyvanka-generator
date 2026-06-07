@@ -61,7 +61,20 @@ function generate(updateHash=true){
     decoP:0.25+dens*0.13,
   });
   const seedNum = VY.gen.hashStr(state.seed);
-  if(state.mode==="wallpaper"){
+  VY.app._lastTile=null;
+  if(state.mode==="wallpaper"&&state.layout==="fabric"){
+    const [, ,W,H]=RES.find(r=>r[0]===state.res);
+    const tileModel=VY.gen.composeFabricTile(state.scale);
+    const base={small:5,medium:8,large:12}[state.scale];
+    const cell=Math.max(4,Math.round(base*H/1080));
+    const tileCanvas=VY.render.buildTileCanvas(tileModel,cell,state.style,seedNum);
+    VY.cv.width=W;VY.cv.height=H;VY.ctx.setTransform(1,0,0,1,0,0);
+    VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
+    VY.render.fillPattern(W,H,tileCanvas);
+    VY.render.fitPreview(W,H);
+    VY.app._lastTile=tileCanvas;
+    document.getElementById("dims").textContent=`${W}×${H}px · seamless tile ${tileModel.cols}×${tileModel.rows}`;
+  }else if(state.mode==="wallpaper"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
     const model=VY.gen.composeWallpaper(W,H,state.layout,state.scale);
     VY.cv.width=W;VY.cv.height=H;VY.ctx.setTransform(1,0,0,1,0,0);
@@ -114,6 +127,12 @@ document.getElementById("backdrop").onclick=()=>document.body.classList.remove("
 document.getElementById("drawerClose").onclick=()=>document.body.classList.remove("menu-open");
 
 /* ---- boot ---- */
+VY.app = { generate, state, _lastTile:null };
 readHash();syncUI();generate(false);
 
-VY.app = { generate, state };
+document.getElementById("tile").onclick=()=>{
+  if(!VY.app._lastTile){alert("Tile export is available for the Seamless layout.");return;}
+  const a=document.createElement("a");
+  a.download=`vyshyvanka_${state.region}_tile_${state.seed}.png`;
+  a.href=VY.app._lastTile.toDataURL("image/png"); a.click();
+};

@@ -19,6 +19,9 @@ function blit(dst,src,ox,oy){
   for(let y=0;y<src.length;y++){const dy=oy+y; if(dy<0||dy>=dst.length)continue; const r=src[y];
     for(let x=0;x<r.length;x++){if(r[x]){const dx=ox+x; if(dx<0||dx>=dst[0].length)continue; dst[dy][dx]=r[x];}}}
 }
+function blitWrap(dst,src,ox,oy){ const H=dst.length,W=dst[0].length;
+  for(let y=0;y<src.length;y++){const r=src[y];for(let x=0;x<r.length;x++){if(r[x]){
+    dst[((oy+y)%H+H)%H][((ox+x)%W+W)%W]=r[x];}}}}
 function transpose(g){const h=g.length,w=g[0].length,t=newGrid(h,w);for(let y=0;y<h;y++)for(let x=0;x<w;x++)t[x][y]=g[y][x];return t;}
 
 /* ===================== MOTIF — combinatorial, 8-fold symmetric =====================
@@ -210,8 +213,35 @@ function composeWallpaper(W,H,layout,scaleKey){
   return {grid,cols,rows,cell,palette:P,W,H};
 }
 
+/* ===================== seamless fabric tile ===================== */
+function composeFabricTile(scaleKey){
+  const P=CFG.P, v=CFG.variety;
+  const mm=[9,11,13][{small:0,medium:1,large:2}[scaleKey]];
+  const gap=Math.max(2,Math.round(mm*0.35)), period=mm+gap;
+  const latt=pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]);
+  const cols=latt==="straight"?period:period*2;
+  const rows=latt==="diamond"?Math.max(period, Math.round(period*1.1)):period;
+  const grid=newGrid(cols,rows);
+  const setN=Math.max(1,1+Math.round(v*3)), motifs=[];
+  for(let i=0;i<setN;i++) motifs.push(makeMotif(mm));
+  const filler=(CFG.dens>=3||v>0.45)?makeFiller():null;
+  let row=0;
+  for(let gy=0; gy<rows; gy+=period, row++){
+    const off=(latt!=="straight"&&row%2)?Math.round(period/2):0;
+    let i=0;
+    for(let gx=off; gx<cols; gx+=period, i++){
+      const idx=(row+i)%setN;
+      blitWrap(grid, motifs[idx], gx, gy);
+      if(filler) blitWrap(grid, filler, gx+Math.round(period/2), gy+Math.round(period/2));
+    }
+  }
+  return {grid,cols,rows,palette:P};
+}
+
 /* ===================== exported entry points ===================== */
 VY.gen = { composeWallpaper, composePanel, sampler };
+VY.gen.composeFabricTile = composeFabricTile;
+VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
 VY.gen.setConfig = (cfg) => {
   Object.assign(CFG, cfg);

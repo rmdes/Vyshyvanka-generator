@@ -4,7 +4,8 @@ window.VY = window.VY || {};
 /* ===================== render ===================== */
 VY.cv = document.getElementById("cv");
 VY.ctx = VY.cv.getContext("2d");
-const cv = VY.cv, ctx = VY.ctx;
+const cv = VY.cv; let ctx = VY.ctx;
+function setCtx(c){ ctx = c; }
 function lum(hex){const n=parseInt(hex.slice(1),16);return(((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114)/255;}
 function hex2rgb(h){const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
 function rgb2css(r,g,b){return `rgb(${r|0},${g|0},${b|0})`;}
@@ -60,4 +61,17 @@ function fitPreview(W,H){
 }
 let resizeT; window.addEventListener("resize",()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>{if(LAST.W)fitPreview(LAST.W,LAST.H);},120);});
 
-VY.render = { drawGrid, fitPreview, lum };
+function buildTileCanvas(model, cell, style, seedNum){
+  const c=document.createElement("canvas");
+  c.width=model.cols*cell; c.height=model.rows*cell;
+  const tctx=c.getContext("2d");
+  tctx.fillStyle=model.palette.bg; tctx.fillRect(0,0,c.width,c.height);
+  const save=ctx; setCtx(tctx); drawGrid(model, cell, 0, 0, style, seedNum); setCtx(save);
+  return c;
+}
+function fillPattern(W,H,tileCanvas){
+  const p=ctx.createPattern(tileCanvas,"repeat");
+  ctx.fillStyle=p; ctx.fillRect(0,0,W,H);
+}
+
+VY.render = { drawGrid, fitPreview, lum, buildTileCanvas, fillPattern, setCtx };
