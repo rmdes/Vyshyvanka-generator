@@ -97,7 +97,7 @@ window.VY = window.VY || {};
     stage.addEventListener("pointermove",(e)=>{ if(!dragging) return;
       const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
       VP={...VP, cx:VP.cx-dx/VP.zoom, cy:VP.cy-dy/VP.zoom}; liveCommit(); });
-    const up=()=>{ if(!dragging) return; dragging=false; stage.classList.remove("grabbing"); settle(); };
+    const up=()=>{ if(!dragging) return; dragging=false; stage.classList.remove("grabbing"); settle(); }; // restart the settle timer from release, not the last move
     stage.addEventListener("pointerup",up); stage.addEventListener("pointercancel",up);
     stage.addEventListener("dblclick",(e)=>{ if(!PIECE) return; const r=stage.getBoundingClientRect();
       VP=zoomAt(VP, e.shiftKey?0.5:2, e.clientX-r.left, e.clientY-r.top, r.width, r.height); liveCommit(); });
@@ -127,7 +127,7 @@ window.VY = window.VY || {};
       else return; e.preventDefault(); });
     const rb=document.getElementById("vpReset"); if(rb) rb.onclick=fit;
     let _resizeT;
-    window.addEventListener("resize",()=>{ clearTimeout(_resizeT); _resizeT=setTimeout(()=>{ if(PIECE) attach(PIECE, getView()); }, 120); });
+    window.addEventListener("resize",()=>{ clearTimeout(_resizeT); _resizeT=setTimeout(()=>{ if(PIECE) attach(PIECE, getView()); }, 120); }); // refit at new size; hash stays from last onSettle (may be briefly stale until next interaction)
   }
 
   VY.viewport = { LODS, ZMAX, cellForLod, lodForZoom, screenToPattern, patternToScreen,
