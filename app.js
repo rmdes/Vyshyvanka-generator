@@ -60,13 +60,14 @@ function generate(updateHash=true){
     dens,
     decoP:0.25+dens*0.13,
   });
+  const seedNum = VY.gen.hashStr(state.seed);
   if(state.mode==="wallpaper"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
     const model=VY.gen.composeWallpaper(W,H,state.layout,state.scale);
     VY.cv.width=W;VY.cv.height=H;VY.ctx.setTransform(1,0,0,1,0,0);
     VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
     const ox=Math.round((W-model.cols*model.cell)/2),oy=Math.round((H-model.rows*model.cell)/2);
-    VY.render.drawGrid(model,model.cell,ox,oy,state.style);
+    VY.render.drawGrid(model,model.cell,ox,oy,state.style,seedNum);
     VY.render.fitPreview(W,H);
     document.getElementById("dims").textContent=`${W}×${H}px · ${model.cols}×${model.rows} stitches`;
   }else{
@@ -75,7 +76,7 @@ function generate(updateHash=true){
     const W=model.cols*cell,H=model.rows*cell;
     VY.cv.width=W*dpr;VY.cv.height=H*dpr;VY.ctx.setTransform(dpr,0,0,dpr,0,0);
     VY.ctx.fillStyle=P.bg;VY.ctx.fillRect(0,0,W,H);
-    VY.render.drawGrid(model,cell,0,0,state.style);
+    VY.render.drawGrid(model,cell,0,0,state.style,seedNum);
     VY.render.fitPreview(W,H);
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
