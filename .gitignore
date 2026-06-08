@@ -2,6 +2,12 @@
 vyshyvanka_*.png
 *.png
 
+# Server-side copies of old tagged releases (deployed in their own folders)
+v0/
+v1/
+v2/
+v3/
+
 # OS / editor cruft
 Thumbs.db
 desktop.ini
