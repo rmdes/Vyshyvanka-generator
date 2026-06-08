@@ -20,6 +20,11 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
   </div>
 
   <div class="actionbar">
+    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Mode">
+      <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
+      <button data-mode="panel">🧵 Panel</button>
+      <button data-mode="explore">🧭 Explore</button>
+    </div>
     <div class="row">
       <button class="primary" id="gen">🎲 New design</button>
       <button id="undo" title="Undo last design" aria-label="Undo">↶</button>
@@ -66,12 +71,6 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
     <section class="acc-sec" data-sec="output">
       <button class="acc-h" aria-expanded="false" aria-controls="sec-output">Output</button>
       <div class="acc-b hidden" id="sec-output">
-        <label>Mode</label>
-        <div class="seg" id="modeSeg" role="radiogroup" aria-label="Output mode">
-          <button data-mode="wallpaper" class="on">🖥 Wallpaper</button>
-          <button data-mode="panel">🧵 Garment panel</button>
-          <button data-mode="explore">🧭 Explore</button>
-        </div>
         <div id="wallControls">
           <label for="res">Resolution</label>
           <select id="res"></select>
