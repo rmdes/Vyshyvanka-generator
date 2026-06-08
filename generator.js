@@ -252,6 +252,26 @@ function cellMotif(latX, latY, cfg){
   return g;
 }
 
+// build a {grid,cols,rows,palette} window of the infinite plane over world-stitch [wx0,wx0+wcols)×[wy0,wy0+wrows)
+function composeInfiniteWindow(cfg, wx0, wy0, wcols, wrows){
+  const g=newGrid(wcols, wrows), period=cfg.period;
+  const latX0=Math.floor(wx0/period)-1, latX1=Math.floor((wx0+wcols)/period)+1;
+  const latY0=Math.floor(wy0/period)-1, latY1=Math.floor((wy0+wrows)/period)+1;
+  for(let latY=latY0;latY<=latY1;latY++) for(let latX=latX0;latX<=latX1;latX++){
+    const motif=cellMotif(latX,latY,cfg);
+    const pad=Math.floor((period-motif.length)/2);   // center by THIS motif's size (hero motifs are < mm)
+    blit(g, motif, latX*period+pad - wx0, latY*period+pad - wy0);   // blit clips to the window
+  }
+  return { grid:g, cols:wcols, rows:wrows, palette:cfg.P };
+}
+// the window model + draw offsets for device-tile (tx,ty) at device cell dCell (TILE px)
+function composeInfiniteTile(cfg, dCell, tx, ty, TILE){
+  const wx0=Math.floor(tx*TILE/dCell)-1, wy0=Math.floor(ty*TILE/dCell)-1;
+  const wx1=Math.ceil((tx+1)*TILE/dCell)+1, wy1=Math.ceil((ty+1)*TILE/dCell)+1;
+  const model=composeInfiniteWindow(cfg, wx0, wy0, wx1-wx0, wy1-wy0);
+  return { model, ox: wx0*dCell - tx*TILE, oy: wy0*dCell - ty*TILE };
+}
+
 /* ===================== bands ===================== */
 function borderBand(cols){
   const P=CFG.P, kind=pick(["diamonds","zigzag","meander","hatch"]);
@@ -428,3 +448,5 @@ VY.gen.setConfig = (cfg) => {
 VY.gen.hashStr = hashStr;
 VY.gen.buildFabricConfig = buildFabricConfig;
 VY.gen.cellMotif = cellMotif;
+VY.gen.composeInfiniteWindow = composeInfiniteWindow;
+VY.gen.composeInfiniteTile = composeInfiniteTile;

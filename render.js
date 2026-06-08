@@ -79,6 +79,13 @@ function rasterSeamlessTile(tileModel, dCell, tx, ty, style, seedNum, bg, TILE){
   g.restore();
   return c;
 }
+// draw a precomposed window model into one TILE×TILE canvas at device cell dCell, offset (ox,oy)
+function rasterWindowTile(model, dCell, ox, oy, style, seedNum, bg, TILE){
+  const c=document.createElement("canvas"); c.width=TILE; c.height=TILE;
+  const g=c.getContext("2d"); g.fillStyle=bg; g.fillRect(0,0,TILE,TILE);
+  const save=ctx; setCtx(g); drawGrid(model, dCell, ox, oy, style, seedNum); setCtx(save);
+  return c;
+}
 
 /* ===================== counted-stitch chart ===================== */
 const CHART_SYMBOLS = ["✚","◆","▲","●","■","✖","★","◐","◢","✦","◇","▼"];
@@ -115,4 +122,4 @@ function renderChart(model){
   return c;
 }
 
-VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterTile, rasterSeamlessTile };
+VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterTile, rasterSeamlessTile, rasterWindowTile };
