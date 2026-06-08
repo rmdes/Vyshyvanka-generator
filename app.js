@@ -20,14 +20,16 @@ const RES=[
 ];
 const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
              res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
-             tradition:45,symmetry:"d4",lab:null,viewX:null,viewY:null,viewZoom:null};
+             tradition:45,symmetry:"d4",lab:null,viewX:null,viewY:null,viewZoom:null,
+             bgColor:null,threadCols:[]};
 const state={...DEFAULTS};
+state.threadCols=[];
 
 const regionSel=document.getElementById("region");
 for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].formal+" · "+VY.REGIONS[k].inspiredBy;regionSel.appendChild(o);}
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
-function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();state[key]=v;syncUI();generate();};el.appendChild(b);});}
+function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();if(key==="bg")resetColors();state[key]=v;syncUI();generate();};el.appendChild(b);});}
 buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");
 
 function syncUI(){
@@ -77,7 +79,9 @@ function generate(updateHash=true){
   // NOTE: state.lab is deliberately NOT in the RNG seed — the genome is applied purely (makeFieldMotif)
   // and shared via the URL hash, so editing the Lab changes ONLY field-motif geometry, not the whole canvas.
   VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}`);
-  const P=(state.mode==="wallpaper"||state.mode==="explore")?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  let P=(state.mode==="wallpaper"||state.mode==="explore")?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  P=VY.applyColors(P, state.bgColor, state.threadCols);
+  VY.app._palette=P;
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setConfig({
     P,
@@ -146,7 +150,7 @@ function generate(updateHash=true){
 }
 
 /* ---- shareable URL ---- */
-function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);if(state.viewZoom){o.vox=state.viewX;o.voy=state.viewY;o.voz=state.viewZoom;}const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
+function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);if(state.bgColor)o.bgc=state.bgColor.replace(/^#/,"");if(state.threadCols&&state.threadCols.some(Boolean))o.thr=state.threadCols.map(c=>c?c.replace(/^#/,""):"").join(",");if(state.viewZoom){o.vox=state.viewX;o.voy=state.viewY;o.voz=state.viewZoom;}const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
 function readHash(){if(!location.hash)return;const p=new URLSearchParams(location.hash.slice(1));const g=(k,d)=>p.get(k)??d;
   state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");const ci=+g("c",state.complexity); if(Number.isFinite(ci)) state.complexity=Math.max(1,Math.min(5,Math.round(ci)));
   const vi=+g("vy",state.variety); if(Number.isFinite(vi)) state.variety=Math.max(0,Math.min(100,Math.round(vi)));state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
@@ -154,14 +158,18 @@ function readHash(){if(!location.hash)return;const p=new URLSearchParams(locatio
   const ti=+g("tr",state.tradition); if(Number.isFinite(ti)) state.tradition=Math.max(0,Math.min(100,Math.round(ti)));
   const sy=g("sym",state.symmetry); if(sy==="d4"||sy==="d2"||sy==="loose") state.symmetry=sy;
   const lb=g("lab",""); if(lb){ try{ const o=JSON.parse(lb); if(o && typeof o==="object" && !Array.isArray(o) && (Array.isArray(o.layers)||o.sym||o.levels||o.centerStyle)) state.lab=o; }catch{} }
+  const _hx=s=>/^[0-9a-fA-F]{6}$/.test(s)?("#"+s.toLowerCase()):null;
+  const bgc=_hx(g("bgc","")); if(bgc) state.bgColor=bgc;
+  const thr=g("thr",""); if(thr) state.threadCols=thr.split(",").map(s=>_hx(s)||"");
   const vox=+g("vox","x"),voy=+g("voy","x"),voz=+g("voz","x");
   if(Number.isFinite(vox)&&Number.isFinite(voy)&&Number.isFinite(voz)&&voz>0){ state.viewX=vox;state.viewY=voy;state.viewZoom=voz; }}
 
 /* ---- events ---- */
 function resetView(){ state.viewX=state.viewY=state.viewZoom=null; }
-[...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{resetView();state.mode=b.dataset.mode;syncUI();generate();});
+function resetColors(){ state.bgColor=null; state.threadCols=[]; }
+[...document.getElementById("modeSeg").children].forEach(b=>b.onclick=()=>{resetView();resetColors();state.mode=b.dataset.mode;syncUI();generate();});
 [...document.getElementById("styleSeg").children].forEach(b=>b.onclick=()=>{state.style=b.dataset.style;syncUI();generate();});
-regionSel.onchange=e=>{resetView();state.region=e.target.value;syncUI();generate();};
+regionSel.onchange=e=>{resetView();resetColors();state.region=e.target.value;syncUI();generate();};
 resSel.onchange=e=>{resetView();state.res=e.target.value;generate();};
 document.getElementById("complexity").oninput=e=>{state.complexity=+e.target.value;document.getElementById("cxVal").textContent=state.complexity;};
 document.getElementById("complexity").onchange=()=>{resetView();generate();};
