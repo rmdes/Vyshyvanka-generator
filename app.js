@@ -24,7 +24,7 @@ const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"
 const state={...DEFAULTS};
 
 const regionSel=document.getElementById("region");
-for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].name;regionSel.appendChild(o);}
+for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.textContent=VY.REGIONS[k].formal+" · "+VY.REGIONS[k].inspiredBy;regionSel.appendChild(o);}
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
 function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();state[key]=v;syncUI();generate();};el.appendChild(b);});}
@@ -32,7 +32,8 @@ buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");build
 
 function syncUI(){
   regionSel.value=state.region;
-  document.getElementById("regionNote").textContent=VY.REGIONS[state.region].note;
+  const _R=VY.REGIONS[state.region];
+  document.getElementById("regionNote").innerHTML=`${_R.note} · inspired by ${_R.inspiredBy} <a href="${_R.src}" target="_blank" rel="noopener" title="Further reading">ⓘ</a>`;
   document.getElementById("complexity").value=state.complexity;
   document.getElementById("cxVal").textContent=state.complexity;
   document.getElementById("variety").value=state.variety;
@@ -56,7 +57,7 @@ function syncUI(){
   [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
   const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry"};
   for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
-  const name=VY.REGIONS[state.region].name.split(" — ")[0];
+  const name=VY.REGIONS[state.region].formal;
   document.getElementById("title").textContent =
       state.mode==="explore" ? `${name} · Infinite fabric`
     : wall                   ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
