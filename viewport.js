@@ -36,6 +36,24 @@ window.VY = window.VY || {};
     return { lod, cell, s, tx:stageW/2 - vp.cx*vp.zoom, ty:stageH/2 - vp.cy*vp.zoom };
   }
 
+  // ---- tile-source math (pure; device-pixel tile grid at scale dCell) ----
+  // inclusive tile-index range covering the visible stage (+overscan), centered on stitch (cx,cy)
+  function tilesFor(cx, cy, W, H, dCell, DPR, TILE, over){
+    const cxd=cx*dCell, cyd=cy*dCell, halfW=W*DPR/2+over, halfH=H*DPR/2+over;
+    return { tx0:Math.floor((cxd-halfW)/TILE), tx1:Math.floor((cxd+halfW)/TILE),
+             ty0:Math.floor((cyd-halfH)/TILE), ty1:Math.floor((cyd+halfH)/TILE) };
+  }
+  // top-left of tile (tx,ty) in the canvas backing store (device px)
+  function tileDest(tx, ty, cx, cy, W, H, dCell, DPR, TILE){
+    return { x: tx*TILE - cx*dCell + W*DPR/2, y: ty*TILE - cy*dCell + H*DPR/2 };
+  }
+  // residual CSS transform: a canvas painted at `renderCell` CSS px/stitch (centered on the view
+  // center) shown at vp.zoom. transform-origin:0 0.
+  function residualTransform(vp, renderCell, W, H){
+    const S=vp.zoom/renderCell;
+    return { S, Tx:(W/2)*(1-S), Ty:(H/2)*(1-S) };
+  }
+
   let PIECE=null, VP=null, rasterCanvas=null;
   const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1)); // captured at load; a display-ratio change needs a reload
   let curDeviceCell=0;
@@ -132,5 +150,6 @@ window.VY = window.VY || {};
   }
 
   VY.viewport = { LODS, ZMAX, cellForLod, lodForZoom, screenToPattern, patternToScreen,
-                  fitView, clampView, zoomAt, transformFor, attach, init, fit, getView, isFit };
+                  fitView, clampView, zoomAt, transformFor, tilesFor, tileDest, residualTransform,
+                  attach, init, fit, getView, isFit };
 })();
