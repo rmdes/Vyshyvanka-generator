@@ -48,7 +48,7 @@ function syncUI(){
   resSel.value=state.res;
   const wall=state.mode==="wallpaper";
   document.getElementById("wallControls").classList.toggle("hidden",!wall);
-  document.getElementById("panelControls").classList.toggle("hidden",wall);
+  document.getElementById("panelControls").classList.toggle("hidden",state.mode!=="panel");
   document.getElementById("hint").textContent="scroll = zoom · drag = pan · 0 = fit";
   const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
   [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
@@ -56,9 +56,10 @@ function syncUI(){
   const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry"};
   for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
   const name=VY.REGIONS[state.region].name.split(" — ")[0];
-  document.getElementById("title").textContent=wall
-    ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
-    : `${name} · ${SHAPES.find(s=>s[0]===state.shape)[1]}`;
+  document.getElementById("title").textContent =
+      state.mode==="explore" ? `${name} · Infinite fabric`
+    : wall                   ? `${name} · ${LAYOUTS.find(l=>l[0]===state.layout)[1]} wallpaper`
+    :                          `${name} · ${SHAPES.find(s=>s[0]===state.shape)[1]}`;
   const _lp=document.getElementById("labPinned"); if(_lp) _lp.style.display=(state.lab && Array.isArray(state.lab.layers))?"":"none";
   if(state.lab && Array.isArray(state.lab.layers)){
     document.getElementById("labNLayers").value=state.lab.layers.length;
@@ -74,7 +75,7 @@ function generate(updateHash=true){
   // NOTE: state.lab is deliberately NOT in the RNG seed — the genome is applied purely (makeFieldMotif)
   // and shared via the URL hash, so editing the Lab changes ONLY field-motif geometry, not the whole canvas.
   VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}`);
-  const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  const P=(state.mode==="wallpaper"||state.mode==="explore")?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setConfig({
     P,
@@ -113,6 +114,17 @@ function generate(updateHash=true){
     piece={cols:model.cols, rows:model.rows, bg:P.bg,
            rasterTile:(dCell,tx,ty)=>VY.render.rasterTile(model,dCell,tx,ty,state.style,seedNum,P.bg,256)};
     document.getElementById("dims").textContent=`${W}×${H}px · ${model.cols}×${model.rows} stitches`;
+  }else if(state.mode==="explore"){
+    const mm=11;   // fixed medium lattice for v1 (zoom is the user's scale control)
+    const cfg=VY.gen.buildFabricConfig(P,
+      {ornate:dens, wild:state.variety/100, tradition:state.tradition/100, symmetry:state.symmetry},
+      state.lab, mm, state.seed);
+    exp=null;                       // export = current view (#png falls back to VY.cv)
+    VY.app._lastModel=null; VY.app._lastTile=null;
+    piece={infinite:true, bg:P.bg,
+      rasterTile:(dCell,tx,ty)=>{ const w=VY.gen.composeInfiniteTile(cfg,dCell,tx,ty,256);
+        return VY.render.rasterWindowTile(w.model,dCell,w.ox,w.oy,state.style,seedNum,P.bg,256); }};
+    document.getElementById("dims").textContent=`Infinite fabric · roam to explore`;
   }else{
     const model=VY.gen.composePanel(state.shape);
     const cell=Math.max(3,Math.min(22,Math.floor(Math.min(720/model.cols,720/model.rows))));
@@ -159,7 +171,8 @@ document.getElementById("seed").onchange=e=>{resetView();state.seed=e.target.val
 document.getElementById("gen").onclick=()=>{resetView();state.lab=null;state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();
   if(!document.querySelector('.acc-sec[data-sec="lab"] .acc-b').classList.contains("hidden")) openLabFromSeed();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");
-  a.download=`vyshyvanka_${state.region}_${state.mode==="wallpaper"?state.layout+"_"+state.res:state.shape}_${state.seed}.png`;
+  const tag=state.mode==="wallpaper"?state.layout+"_"+state.res:state.mode==="explore"?"explore":state.shape;
+  a.download=`vyshyvanka_${state.region}_${tag}_${state.seed}.png`;
   a.href=(VY.app._exportCanvas||VY.cv).toDataURL("image/png");a.click();};
 document.getElementById("share").onclick=async()=>{writeHash();const btn=document.getElementById("share");
   try{await navigator.clipboard.writeText(location.href);btn.textContent="Copied!";setTimeout(()=>btn.textContent="🔗 Copy share link",1200);}
