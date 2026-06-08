@@ -147,6 +147,7 @@ function generate(updateHash=true){
   const rv=(state.viewZoom)?{cx:state.viewX,cy:state.viewY,zoom:state.viewZoom}:null;
   VY.viewport.attach(piece, rv);
   if(updateHash)writeHash();
+  renderSwatches();
 }
 
 /* ---- shareable URL ---- */
@@ -178,6 +179,8 @@ document.getElementById("variety").onchange=()=>{resetView();generate();};
 document.getElementById("tradition").oninput=e=>{state.tradition=+e.target.value;document.getElementById("trVal").textContent=state.tradition+"%";};
 document.getElementById("tradition").onchange=()=>{resetView();generate();};
 document.getElementById("seed").onchange=e=>{resetView();state.seed=e.target.value.trim()||"vyshyvanka";generate();};
+document.getElementById("bgColor").oninput=e=>{ state.bgColor=e.target.value; generate(); };
+document.getElementById("resetColors").onclick=()=>{ resetColors(); generate(); };
 document.getElementById("gen").onclick=()=>{resetView();state.lab=null;state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();
   if(!document.querySelector('.acc-sec[data-sec="lab"] .acc-b').classList.contains("hidden")) openLabFromSeed();};
 document.getElementById("png").onclick=()=>{const a=document.createElement("a");
@@ -202,6 +205,17 @@ function renderFavs(){
     b.appendChild(img); b.appendChild(rm);
     b.onclick=()=>{Object.assign(state,f.state);syncUI();generate();if(state.lab)openSection("lab");};
     wrap.appendChild(b);
+  });
+}
+function renderSwatches(){
+  const P=VY.app._palette; if(!P) return;
+  const bgInp=document.getElementById("bgColor"); if(bgInp) bgInp.value=state.bgColor||P.bg;
+  const host=document.getElementById("threadSwatches"); if(!host) return; host.innerHTML="";
+  P.threads.forEach((hex,i)=>{
+    const inp=document.createElement("input"); inp.type="color"; inp.value=hex;
+    inp.title="Thread "+(i+1); inp.setAttribute("aria-label","Thread "+(i+1)+" colour");
+    inp.onchange=()=>{ const tc=state.threadCols.slice(); tc[i]=inp.value; state.threadCols=tc; generate(); };
+    host.appendChild(inp);
   });
 }
 document.getElementById("save").onclick=()=>{
@@ -276,7 +290,7 @@ function openLabFromSeed(){
 }
 /* ---- accordion (single-open, persisted) ---- */
 const SEC_KEY="vy_openSection";
-const SECTIONS=["design","lab","output","style","export"];
+const SECTIONS=["design","lab","output","style","colour","export"];
 function openSection(key){
   if(!SECTIONS.includes(key)) key="design";
   SECTIONS.forEach(s=>{

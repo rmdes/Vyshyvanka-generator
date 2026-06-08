@@ -43,6 +43,9 @@
   .favs .fav img{width:100%;height:100%;object-fit:cover;display:block}
   .favs .fav .rm{position:absolute;top:0;right:0;background:rgba(0,0,0,.6);color:#fff;
     font-size:10px;line-height:1;padding:1px 3px;border:0;border-radius:0 0 0 4px}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.swatches input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--panel2);cursor:pointer}
+#bgColor{height:32px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer}
 .labLayer{border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px}
 .labLayer>label{margin:0 0 4px}
 .labgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}

@@ -95,8 +95,19 @@ ABOUTME: Generates symmetric counted-thread patterns from geometric primitives +
           <button data-style="x" class="on">✕ Cross-stitch</button>
           <button data-style="sq">▢ Filled</button>
         </div>
+      </div>
+    </section>
+
+    <section class="acc-sec" data-sec="colour">
+      <button class="acc-h" aria-expanded="false" aria-controls="sec-colour">🎨 Colour</button>
+      <div class="acc-b hidden" id="sec-colour">
         <label>Cloth background</label>
         <div class="seg" id="bgSeg" role="radiogroup" aria-label="Cloth background"></div>
+        <label for="bgColor">Custom cloth colour</label>
+        <input type="color" id="bgColor" class="wide" aria-label="Custom cloth colour" />
+        <label>Thread colours</label>
+        <div id="threadSwatches" class="swatches" aria-label="Thread colours"></div>
+        <button id="resetColors" class="wide">↺ Reset colours</button>
       </div>
     </section>
 
