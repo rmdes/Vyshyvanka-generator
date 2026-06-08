@@ -147,26 +147,29 @@ function makeFieldMotif(m, G){
 }
 
 // aim = { ornate:1..5, wild:0..1, tradition:0..1, symmetry:'d4'|'d2'|'loose' }
-function sampleGenome(P, aim){
+// rng-injected core: all randomness comes from the passed-in rng() in [0,1).
+function sampleGenomeFrom(rng, P, aim){
   const tr=aim.tradition, wild=aim.wild, ornate=aim.ornate;
+  const rpick=(arr)=>arr[Math.floor(rng()*arr.length)];
+  const rri=(a,b)=>a+Math.floor(rng()*(b-a+1));
   const coordsTrad=['radial','manhattan','chebyshev'];
   const coordsInv =['radial','manhattan','chebyshev','diagonal','angle','lattice'];
   const nLayers=Math.max(1, Math.min(4, Math.round(1 + (ornate-1)*0.6 + tr*1.5)));
   const layers=[];
   for(let i=0;i<nLayers;i++){
-    // tradition unlocks chaos progressively: exotic coords >0.4, square waves >0.5, free freq/phase >=0.3
-    const coord = pick(tr>0.4 ? coordsInv : coordsTrad);
-    const wave  = pick(tr>0.5 ? ['cos','tri','sq'] : ['cos','tri']);
-    const freq  = tr<0.3 ? ri(1,3) : (1 + RNG()*wild*(1+tr*5));
-    const phase = (tr<0.3?0:RNG()) * wild;
-    const weight= (1 - 0.5*wild) + RNG()*wild*1.2;   // wild widens layer-weight spread everywhere
-    const slot  = pick(P.colorBias)+1;            // 1-based thread index
+    const coord = rpick(tr>0.4 ? coordsInv : coordsTrad);
+    const wave  = rpick(tr>0.5 ? ['cos','tri','sq'] : ['cos','tri']);
+    const freq  = tr<0.3 ? rri(1,3) : (1 + rng()*wild*(1+tr*5));
+    const phase = (tr<0.3?0:rng()) * wild;
+    const weight= (1 - 0.5*wild) + rng()*wild*1.2;
+    const slot  = rpick(P.colorBias)+1;
     layers.push({coord,wave,freq,phase,weight,slot});
   }
   const levels = 2 + Math.round(ornate*0.8 + tr*3);
-  const centerStyle = pick(['dot','cross','ring','none']);
+  const centerStyle = rpick(['dot','cross','ring','none']);
   return { sym: aim.symmetry||'d4', layers, levels, centerStyle };
 }
+function sampleGenome(P, aim){ return sampleGenomeFrom(RNG, P, aim); }
 
 /* ===================== HERO MOTIFS — chart library mixed into procedural pool ===================== */
 // map semantic slots (1=primary,2=secondary,3=accent) -> palette thread indices
@@ -202,6 +205,17 @@ function varyGenome(lab, wild){
     weight:Math.max(0.1, L.weight*(1+j(0.5)))
   }));
   return { sym:lab.sym||CFG.symmetry, layers,
+           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot" };
+}
+function varyGenomeFrom(rng, lab, wild){
+  const j=(amt)=>(rng()*2-1)*amt*wild;
+  const layers=(lab.layers||[]).map(L=>({
+    coord:L.coord, wave:L.wave, slot:L.slot,
+    freq:Math.max(0.3, L.freq*(1+j(0.5))),
+    phase:L.phase + j(0.5),
+    weight:Math.max(0.1, L.weight*(1+j(0.5)))
+  }));
+  return { sym:lab.sym||'d4', layers,
            levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot" };
 }
 function pickMotif(m){
@@ -378,6 +392,7 @@ VY.gen.composeFabricTile = composeFabricTile;
 VY.gen.makeMotif = makeMotif; // expose for reuse by later tasks
 VY.gen.makeFieldMotif = makeFieldMotif;
 VY.gen.sampleGenome = sampleGenome;
+VY.gen.sampleGenomeFrom = sampleGenomeFrom;
 VY.gen.pickMotif = pickMotif;
 VY.gen.pickSource = pickSource;
 VY.gen.setSeed = (str) => { RNG = mulberry32(hashStr(str)); };
