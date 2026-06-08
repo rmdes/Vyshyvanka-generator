@@ -164,6 +164,14 @@ VY.applyBg=function applyBg(P,bg){
   const light="#f0e7d6", accent=P.threads[0];
   return {...P, bg:dark, threads:[light,accent,...P.threads.slice(1)], colorBias:[0,0,0,1,0,1]};
 };
+// Pure recolour overlay: replaces bg + thread *hexes* only (never colorBias/densityBias),
+// so the generated grid is unaffected. bgColor=null + empty threadCols => returns P unchanged.
+VY.applyColors=function applyColors(P, bgColor, threadCols){
+  if(!bgColor && !(threadCols && threadCols.length)) return P;
+  return { ...P,
+    bg: bgColor || P.bg,
+    threads: P.threads.map((t,i)=> (threadCols && threadCols[i]) || t) };
+};
 
 /* ===================== HERO MOTIFS — documented regional charts =====================
  * Best-effort INTERPRETATIONS of documented Ukrainian vyshyvanka motifs, NOT exact
