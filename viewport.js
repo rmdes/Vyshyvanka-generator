@@ -3,6 +3,7 @@ window.VY = window.VY || {};
 (function(){
   const LODS=[1,2,3,4,6,8,12,16,24,32,48];   // stitch cell sizes in CSS px
   const ZMAX=LODS[LODS.length-1];
+  const HOME_ZOOM=8, MIN_ZOOM=1;   // explore: open at ~8 px/stitch (a few motifs visible); zoom out to 1
   function cellForLod(i){ return LODS[Math.max(0,Math.min(LODS.length-1,i))]; }
   function lodForZoom(zoom){ for(let i=0;i<LODS.length;i++){ if(LODS[i]>=zoom) return i; } return LODS.length-1; }
 
@@ -14,10 +15,12 @@ window.VY = window.VY || {};
     return { sx:(px-vp.cx)*vp.zoom + stageW/2, sy:(py-vp.cy)*vp.zoom + stageH/2 };
   }
   function fitView(piece, stageW, stageH){
+    if(piece.infinite) return { cx:0, cy:0, zoom:HOME_ZOOM, fitZoom:MIN_ZOOM };
     const zoom=Math.max(0.01, Math.min(stageW/Math.max(1,piece.cols), stageH/Math.max(1,piece.rows)));
     return { cx:piece.cols/2, cy:piece.rows/2, zoom, fitZoom:zoom };
   }
   function clampView(vp, piece, stageW, stageH){
+    if(piece.infinite){ return { cx:vp.cx, cy:vp.cy, zoom:Math.max(MIN_ZOOM, Math.min(ZMAX, vp.zoom)), fitZoom:vp.fitZoom||MIN_ZOOM }; }
     const fz=vp.fitZoom||fitView(piece,stageW,stageH).fitZoom;
     const zoom=Math.max(fz, Math.min(ZMAX, vp.zoom));
     const cx=Math.max(0, Math.min(piece.cols, vp.cx));
