@@ -56,17 +56,16 @@ window.VY = window.VY || {};
 
   let PIECE=null, VP=null, rasterCanvas=null;
   const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1)); // captured at load; a display-ratio change needs a reload
-  let curDeviceCell=0;
   function maxCellFor(){ if(!PIECE) return 9999; return Math.max(1, Math.floor(16000/Math.max(PIECE.cols,PIECE.rows))); }
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
   function applyTransform(){ if(!rasterCanvas||!VP) return; const [W,H]=stageSize();
     const {S,Tx,Ty}=residualTransform(VP, renderCell, W, H);
     rasterCanvas.style.transform=`translate(${Tx}px,${Ty}px) scale(${S})`; updateHud(); }
-  const TILE=256, OVER=256; let cache=new Map(); const CACHE_MAX=64; let renderCell=0;
+  const TILE=256, OVER=256; let cache=new Map(), cacheBudget=128, renderCell=0;
   function tileFor(dCell,tx,ty){ const k=dCell+":"+tx+":"+ty;
     if(cache.has(k)){ const c=cache.get(k); cache.delete(k); cache.set(k,c); return c; }
     const c=PIECE.rasterTile(dCell,tx,ty);
-    cache.set(k,c); while(cache.size>CACHE_MAX){ cache.delete(cache.keys().next().value); } return c;
+    cache.set(k,c); while(cache.size>cacheBudget){ cache.delete(cache.keys().next().value); } return c;
   }
   // paint the visible tiles (+overscan) into the stage-sized canvas at the view center, using `cell`
   function retile(cell){
@@ -77,11 +76,12 @@ window.VY = window.VY || {};
     VY.cv.style.width=W+"px"; VY.cv.style.height=H+"px";
     VY.ctx.setTransform(1,0,0,1,0,0); VY.ctx.clearRect(0,0,bw,bh);
     const {tx0,tx1,ty0,ty1}=tilesFor(VP.cx,VP.cy,W,H,dCell,DPR,TILE,OVER);
+    cacheBudget=Math.max(128, (tx1-tx0+1)*(ty1-ty0+1)*2);
     for(let ty=ty0;ty<=ty1;ty++) for(let tx=tx0;tx<=tx1;tx++){
       const d=tileDest(tx,ty,VP.cx,VP.cy,W,H,dCell,DPR,TILE);
       VY.ctx.drawImage(tileFor(dCell,tx,ty), Math.round(d.x), Math.round(d.y));
     }
-    rasterCanvas=VY.cv; curDeviceCell=dCell; applyTransform();
+    rasterCanvas=VY.cv; applyTransform();
   }
   function attach(piece, restoreView){
     cache=new Map(); PIECE=piece; const [W,H]=stageSize();
