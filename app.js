@@ -79,7 +79,7 @@ function generate(updateHash=true){
   // NOTE: state.lab is deliberately NOT in the RNG seed — the genome is applied purely (makeFieldMotif)
   // and shared via the URL hash, so editing the Lab changes ONLY field-motif geometry, not the whole canvas.
   VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}`);
-  let P=(state.mode==="wallpaper"||state.mode==="explore")?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  let P=VY.applyBg(VY.REGIONS[state.region],state.bg);   // all modes honour the cloth background (linen returns the region palette unchanged)
   P=VY.applyColors(P, state.bgColor, state.threadCols);
   VY.app._palette=P;
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
@@ -278,7 +278,7 @@ const LAB_COORDS=["radial","manhattan","chebyshev","diagonal","angle","lattice"]
 const LAB_WAVES=["cos","tri","sq"];
 function labCurrentGenome(){
   // derive a starting genome from the current seed+aim so the Lab opens pre-filled
-  const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  const P=VY.applyBg(VY.REGIONS[state.region],state.bg);
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setSeed(state.seed+"|lab");  // transient reseed; safe because generate() always reseeds before any render
   return VY.gen.sampleGenome(P,{ornate:dens,wild:state.variety/100,tradition:state.tradition/100,symmetry:state.symmetry});
@@ -343,7 +343,7 @@ document.getElementById("labLevels").oninput=e=>{document.getElementById("labLev
 document.getElementById("labLevels").onchange=commitLab;
 document.getElementById("labReset").onclick=()=>{ state.lab=null; generate(); openLabFromSeed(); };
 document.getElementById("labRandom").onclick=()=>{
-  const P=state.mode==="wallpaper"?VY.applyBg(VY.REGIONS[state.region],state.bg):VY.REGIONS[state.region];
+  const P=VY.applyBg(VY.REGIONS[state.region],state.bg);
   const dens=Math.max(1,Math.min(5,+state.complexity+P.densityBias));
   VY.gen.setSeed(Math.random().toString(36).slice(2)+"|labrnd");  // transient; generate() reseeds before render
   const G=VY.gen.sampleGenome(P,{ornate:dens,wild:state.variety/100,tradition:state.tradition/100,symmetry:state.symmetry});
