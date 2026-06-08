@@ -58,7 +58,8 @@ window.VY = window.VY || {};
   const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1)); // captured at load; a display-ratio change needs a reload
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
   function applyTransform(){ if(!rasterCanvas||!VP) return; const [W,H]=stageSize();
-    const {S,Tx,Ty}=residualTransform(VP, renderCell, W, H);
+    // canvas is painted at renderCell over a region >= the stage; scale by S and centre the view centre on the stage
+    const S=VP.zoom/renderCell, Tx=W/2-(rasterCanvas.width/DPR/2)*S, Ty=H/2-(rasterCanvas.height/DPR/2)*S;
     rasterCanvas.style.transform=`translate(${Tx}px,${Ty}px) scale(${S})`; updateHud(); }
   const TILE=256, OVER=256; let cache=new Map(), cacheBudget=128, renderCell=0;
   function tileFor(dCell,tx,ty){ const k=dCell+":"+tx+":"+ty;
@@ -66,18 +67,21 @@ window.VY = window.VY || {};
     const c=PIECE.rasterTile(dCell,tx,ty);
     cache.set(k,c); while(cache.size>cacheBudget){ cache.delete(cache.keys().next().value); } return c;
   }
-  // paint the visible tiles (+overscan) into the stage-sized canvas at the view center, using `cell`
+  // paint the visible tiles (+overscan) into a canvas sized to cover the stage AT renderCell, centered on the view
   function retile(cell){
     if(raf){ cancelAnimationFrame(raf); raf=0; }
     const [W,H]=stageSize(); renderCell=cell; const dCell=Math.round(cell*DPR);
-    const bw=Math.round(W*DPR), bh=Math.round(H*DPR);
-    if(VY.cv.width!==bw||VY.cv.height!==bh){ VY.cv.width=bw; VY.cv.height=bh; }
-    VY.cv.style.width=W+"px"; VY.cv.style.height=H+"px";
-    VY.ctx.setTransform(1,0,0,1,0,0); VY.ctx.clearRect(0,0,bw,bh);
-    const {tx0,tx1,ty0,ty1}=tilesFor(VP.cx,VP.cy,W,H,dCell,DPR,TILE,OVER);
+    const S=VP.zoom/cell;                                  // display scale; the canvas must be 1/S larger than the stage
+    const cw=Math.min(16384, Math.max(Math.round(W*DPR), Math.ceil(W*DPR/S)));
+    const ch=Math.min(16384, Math.max(Math.round(H*DPR), Math.ceil(H*DPR/S)));
+    if(VY.cv.width!==cw||VY.cv.height!==ch){ VY.cv.width=cw; VY.cv.height=ch; }
+    VY.cv.style.width=(cw/DPR)+"px"; VY.cv.style.height=(ch/DPR)+"px";
+    VY.ctx.setTransform(1,0,0,1,0,0); VY.ctx.clearRect(0,0,cw,ch);
+    const Weff=cw/DPR, Heff=ch/DPR;                        // effective stage so tilesFor/tileDest centre in cw,ch
+    const {tx0,tx1,ty0,ty1}=tilesFor(VP.cx,VP.cy,Weff,Heff,dCell,DPR,TILE,OVER);
     cacheBudget=Math.max(128, (tx1-tx0+1)*(ty1-ty0+1)*2);
     for(let ty=ty0;ty<=ty1;ty++) for(let tx=tx0;tx<=tx1;tx++){
-      const d=tileDest(tx,ty,VP.cx,VP.cy,W,H,dCell,DPR,TILE);
+      const d=tileDest(tx,ty,VP.cx,VP.cy,Weff,Heff,dCell,DPR,TILE);
       VY.ctx.drawImage(tileFor(dCell,tx,ty), Math.round(d.x), Math.round(d.y));
     }
     rasterCanvas=VY.cv; applyTransform();
