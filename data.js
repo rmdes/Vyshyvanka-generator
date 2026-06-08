@@ -264,7 +264,7 @@ VY.HERO_MOTIFS=[
     [1,0,1,0,1,0,1,0,1],
   ]},
   // Dense black/red cross — black-dominant geometric (associated with Podillia).
-  // src: https://en.wikipedia.org/wiki/Borshchiv
+  // src: https://en.wikipedia.org/wiki/Podilia
   { id:"black-cross", regions:["borshchiv","bukovyna","hutsul","polissia"], src:"https://en.wikipedia.org/wiki/Podilia", grid:[
     [1,1,0,1,1,1,0,1,1],
     [1,3,0,1,2,1,0,3,1],
@@ -325,7 +325,7 @@ VY.HERO_MOTIFS=[
     [0,0,1,0,1,0,1,0,0],
   ]},
   // Sparse, delicate cross in red — fine white-ground geometry.
-  // src: https://en.wikipedia.org/wiki/Chernihiv
+  // src: https://en.wikipedia.org/wiki/Chernihiv_Oblast
   { id:"fine-cross", regions:["chernihiv","poltava","polissia"], src:"https://en.wikipedia.org/wiki/Chernihiv_Oblast", grid:[
     [0,0,1,0,0,0,1,0,0],
     [0,2,0,1,0,1,0,2,0],
