@@ -217,7 +217,7 @@ document.getElementById("save").onclick=()=>{
 document.getElementById("resetAll").onclick=()=>{
   if(!confirm("Reset everything? This clears your saved favorites and returns all controls to defaults.")) return;
   try{localStorage.removeItem(FAV_KEY);localStorage.removeItem(SEC_KEY);}catch{}
-  Object.assign(state,DEFAULTS,{lab:null});
+  Object.assign(state,DEFAULTS,{lab:null,threadCols:[]});
   history.replaceState(null,"",location.pathname+location.search);
   syncUI(); generate(false); renderFavs(); openSection("design");
 };
