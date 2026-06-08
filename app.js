@@ -218,6 +218,33 @@ function renderSwatches(){
     host.appendChild(inp);
   });
 }
+const PAL_KEY="vy_palettes";
+const loadPals=()=>{try{return JSON.parse(localStorage.getItem(PAL_KEY))||[];}catch{return[];}};
+const savePals=(a)=>{try{localStorage.setItem(PAL_KEY,JSON.stringify(a));return true;}catch{return false;}};
+function renderPalettes(){
+  const wrap=document.getElementById("palettes"); if(!wrap) return; wrap.innerHTML="";
+  loadPals().forEach((pal,idx)=>{
+    const row=document.createElement("div"); row.className="pal";
+    const sw=document.createElement("div"); sw.className="sw";
+    [pal.bgColor,...(pal.threadCols||[])].filter(Boolean).slice(0,6).forEach(hx=>{const i=document.createElement("i");i.style.background=hx;sw.appendChild(i);});
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=pal.name; nm.title="Apply "+pal.name;
+    nm.onclick=()=>{ const P=VY.app._palette;
+      state.bgColor=pal.bgColor||null;
+      state.threadCols=(pal.threadCols||[]).slice(0, P?P.threads.length:6);
+      generate(); };
+    const rm=document.createElement("button"); rm.className="rm"; rm.textContent="✕"; rm.title="Delete";
+    rm.onclick=()=>{ const a=loadPals(); a.splice(idx,1); savePals(a); renderPalettes(); };
+    row.append(sw,nm,rm); wrap.appendChild(row);
+  });
+}
+document.getElementById("palSave").onclick=()=>{
+  const P=VY.app._palette; if(!P) return;
+  const name=(prompt("Name this palette:","palette "+(loadPals().length+1))||"").trim(); if(!name) return;
+  const a=loadPals();
+  a.unshift({ name, bgColor: state.bgColor||P.bg, threadCols: P.threads.slice() });
+  if(!savePals(a.slice(0,24))) alert("Couldn't save palette (storage full or unavailable).");
+  renderPalettes();
+};
 document.getElementById("save").onclick=()=>{
   const tc=document.createElement("canvas"); tc.width=108; tc.height=72;
   tc.getContext("2d").drawImage(VY.app._exportCanvas||VY.cv,0,0,108,72);
@@ -230,10 +257,10 @@ document.getElementById("save").onclick=()=>{
 
 document.getElementById("resetAll").onclick=()=>{
   if(!confirm("Reset everything? This clears your saved favorites and returns all controls to defaults.")) return;
-  try{localStorage.removeItem(FAV_KEY);localStorage.removeItem(SEC_KEY);}catch{}
+  try{localStorage.removeItem(FAV_KEY);localStorage.removeItem(SEC_KEY);localStorage.removeItem(PAL_KEY);}catch{}
   Object.assign(state,DEFAULTS,{lab:null,threadCols:[]});
   history.replaceState(null,"",location.pathname+location.search);
-  syncUI(); generate(false); renderFavs(); openSection("design");
+  syncUI(); generate(false); renderFavs(); renderPalettes(); openSection("design");
 };
 
 /* ---- undo (history stack) ---- */
@@ -338,7 +365,7 @@ document.getElementById("drawerClose").onclick=()=>document.body.classList.remov
 VY.app = { generate, state, _lastTile:null, _lastModel:null, _exportCanvas:null, _piece:null };
 VY.viewport.init();
 VY.viewport.onSettle=(view,fit)=>{ if(fit){ state.viewX=state.viewY=state.viewZoom=null; } else { state.viewX=+view.cx.toFixed(2); state.viewY=+view.cy.toFixed(2); state.viewZoom=+view.zoom.toFixed(3); } writeHash(); };
-readHash();syncUI();generate(false);renderFavs();
+readHash();syncUI();generate(false);renderFavs();renderPalettes();
 let _open="design"; try{const k=localStorage.getItem(SEC_KEY); if(SECTIONS.includes(k)) _open=k;}catch{}
 if(state.lab) _open="lab";
 openSection(_open);

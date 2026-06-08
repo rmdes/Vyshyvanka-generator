@@ -46,6 +46,12 @@
 .swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
 .swatches input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--panel2);cursor:pointer}
 #bgColor{height:32px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer}
+.pals{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.pals .pal{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.pals .pal .nm{flex:1;cursor:pointer;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pals .pal .sw{display:flex;gap:2px}
+.pals .pal .sw i{width:12px;height:12px;border-radius:2px;display:block}
+.pals .pal .rm{background:none;border:0;color:var(--muted);cursor:pointer;padding:0 2px;font-size:12px}
 .labLayer{border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px}
 .labLayer>label{margin:0 0 4px}
 .labgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
