@@ -173,11 +173,12 @@ function sampleGenome(P, aim){ return sampleGenomeFrom(RNG, P, aim); }
 
 /* ===================== HERO MOTIFS — chart library mixed into procedural pool ===================== */
 // map semantic slots (1=primary,2=secondary,3=accent) -> palette thread indices
-function remapHero(g){
-  const P=CFG.P, slot=[0, P.colorBias[0]+1, (P.colorBias[1]??P.colorBias[0])+1, P.threads.length];
+function remapHeroP(P, g){
+  const slot=[0, P.colorBias[0]+1, (P.colorBias[1]??P.colorBias[0])+1, P.threads.length];
   return g.map(row=>{const r=new Int8Array(row.length);
     for(let x=0;x<row.length;x++){const s=row[x]; r[x]=s?slot[Math.min(s,3)]:0;} return r;});
 }
+function remapHero(g){ return remapHeroP(CFG.P, g); }
 function heroForRegion(region){
   return (VY.HERO_MOTIFS||[]).filter(h=>!h.regions.length||h.regions.includes(region));
 }
@@ -225,6 +226,30 @@ function pickMotif(m){
   if(src==='field') return makeFieldMotif(m, genomeForCFG(m));
   if(src==='hero')  return remapHero(pick(pool).grid);
   return makeMotif(m);
+}
+
+/* ===================== INFINITE FABRIC (Pillar B) ===================== */
+// One coherent infinite lattice of self-contained motifs, generated per-coordinate.
+function buildFabricConfig(P, aim, lab, mm, seed){
+  const gap=Math.max(2, Math.round(mm*0.35)), period=mm+gap;
+  return { P, aim, lab:lab||null, mm, gap, period,
+           heroPool: heroForRegion(CFG.region), seed,
+           cacheMax: 1024, _cache: new Map() };
+}
+// pure per (latX,latY): identical grid for identical coords + cfg. cached (LRU) on cfg._cache.
+function cellMotif(latX, latY, cfg){
+  const key=latX+":"+latY, c=cfg._cache;
+  if(c.has(key)){ const g=c.get(key); c.delete(key); c.set(key,g); return g; }
+  const rng=mulberry32(hashStr(cfg.seed+"|B|"+latX+"|"+latY)), aim=cfg.aim;
+  let g;
+  if(cfg.lab){ g=makeFieldMotif(cfg.mm, varyGenomeFrom(rng, cfg.lab, aim.wild)); }
+  else {
+    const src=pickSource(rng(), aim.tradition, cfg.heroPool.length>0);
+    if(src==='hero'){ g=remapHeroP(cfg.P, cfg.heroPool[Math.floor(rng()*cfg.heroPool.length)].grid); }
+    else { g=makeFieldMotif(cfg.mm, sampleGenomeFrom(rng, cfg.P, aim)); }   // 'field' and 'archetype' both -> field (v1)
+  }
+  c.set(key,g); while(c.size>cfg.cacheMax){ c.delete(c.keys().next().value); }
+  return g;
 }
 
 /* ===================== bands ===================== */
@@ -401,3 +426,5 @@ VY.gen.setConfig = (cfg) => {
   CFG.theme = buildTheme(CFG.P, CFG.variety);
 };
 VY.gen.hashStr = hashStr;
+VY.gen.buildFabricConfig = buildFabricConfig;
+VY.gen.cellMotif = cellMotif;
