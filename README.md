@@ -15,8 +15,11 @@ Open `index.html` in any browser. No build step, no server, works offline.
 - **Explorable everywhere**: every design renders on a pan/zoom viewport with
   level-of-detail tiles — scroll to zoom, drag to pan, `0` to reset. Zoom in to
   individual cross-stitches; zoom out to a sea of motifs.
-- **6 regional styles** (Poltava, Hutsul, Borshchiv/Podillia, Bukovyna, Polissia,
-  Chernihiv) expressed as *formal traits* only: palette, density, geometry.
+- **6 styles named by their formal traits** (Red on white, Dense polychrome,
+  Black-dominant, Lilac & bronze, Bold archaic red, Sparse white & red), each
+  *inspired by* a documented regional tendency (Poltava, Hutsul,
+  Borshchiv/Podillia, Bukovyna, Polissia, Chernihiv) — interpretations of
+  tendencies, not definitive styles.
 - **Generative "field-function" engine**: motifs are grown from a seed-derived
   *genome* — layers of math basis functions evaluated over symmetry-folded
   coordinates. These purely procedural fields are blended with the documented
