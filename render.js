@@ -59,16 +59,6 @@ function buildTileCanvas(model, cell, style, seedNum){
   const save=ctx; setCtx(tctx); drawGrid(model, cell, 0, 0, style, seedNum); setCtx(save);
   return c;
 }
-// raster a seamless wallpaper piece of (pcols x prows) stitches at a given cell,
-// by tiling the seamless tile (rendered at that cell) across an offscreen canvas
-function rasterSeamless(tileModel, pcols, prows, cell, style, seedNum, bg){
-  const tile=buildTileCanvas(tileModel, cell, style, seedNum);
-  const c=document.createElement("canvas"); c.width=pcols*cell; c.height=prows*cell;
-  const g=c.getContext("2d"); g.fillStyle=bg; g.fillRect(0,0,c.width,c.height);
-  const p=g.createPattern(tile,"repeat"); g.fillStyle=p; g.fillRect(0,0,c.width,c.height);
-  return c;
-}
-
 // one 256px tile of a finite piece at device cell dCell, by slicing the grid (drawGrid clips to the tile)
 function rasterTile(model, dCell, tx, ty, style, seedNum, bg, TILE){
   const c=document.createElement("canvas"); c.width=TILE; c.height=TILE;
@@ -125,4 +115,4 @@ function renderChart(model){
   return c;
 }
 
-VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterSeamless, rasterTile, rasterSeamlessTile };
+VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterTile, rasterSeamlessTile };

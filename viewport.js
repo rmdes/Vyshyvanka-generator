@@ -56,7 +56,6 @@ window.VY = window.VY || {};
 
   let PIECE=null, VP=null, rasterCanvas=null;
   const DPR=Math.max(1, Math.min(3, window.devicePixelRatio||1)); // captured at load; a display-ratio change needs a reload
-  function maxCellFor(){ if(!PIECE) return 9999; return Math.max(1, Math.floor(16000/Math.max(PIECE.cols,PIECE.rows))); }
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
   function applyTransform(){ if(!rasterCanvas||!VP) return; const [W,H]=stageSize();
     const {S,Tx,Ty}=residualTransform(VP, renderCell, W, H);
