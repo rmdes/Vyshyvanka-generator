@@ -69,6 +69,27 @@ function rasterSeamless(tileModel, pcols, prows, cell, style, seedNum, bg){
   return c;
 }
 
+// one 256px tile of a finite piece at device cell dCell, by slicing the grid (drawGrid clips to the tile)
+function rasterTile(model, dCell, tx, ty, style, seedNum, bg, TILE){
+  const c=document.createElement("canvas"); c.width=TILE; c.height=TILE;
+  const g=c.getContext("2d"); g.fillStyle=bg; g.fillRect(0,0,TILE,TILE);
+  const save=ctx; setCtx(g);
+  drawGrid(model, dCell, -tx*TILE, -ty*TILE, style, seedNum);
+  setCtx(save);
+  return c;
+}
+// one 256px tile of a seamless wallpaper, pattern-filled with the world-correct phase so tiles join
+function rasterSeamlessTile(tileModel, dCell, tx, ty, style, seedNum, bg, TILE){
+  const tile=buildTileCanvas(tileModel, dCell, style, seedNum);   // one repeat at dCell
+  const c=document.createElement("canvas"); c.width=TILE; c.height=TILE;
+  const g=c.getContext("2d"); g.fillStyle=bg; g.fillRect(0,0,TILE,TILE);
+  const ox=((tx*TILE)%tile.width+tile.width)%tile.width, oy=((ty*TILE)%tile.height+tile.height)%tile.height;
+  g.save(); g.translate(-ox,-oy);
+  g.fillStyle=g.createPattern(tile,"repeat"); g.fillRect(0,0,TILE+tile.width,TILE+tile.height);
+  g.restore();
+  return c;
+}
+
 /* ===================== counted-stitch chart ===================== */
 const CHART_SYMBOLS = ["✚","◆","▲","●","■","✖","★","◐","◢","✦","◇","▼"];
 function renderChart(model){
@@ -104,4 +125,4 @@ function renderChart(model){
   return c;
 }
 
-VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterSeamless };
+VY.render = { drawGrid, lum, buildTileCanvas, setCtx, renderChart, rasterSeamless, rasterTile, rasterSeamlessTile };
