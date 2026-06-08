@@ -100,7 +100,7 @@ function generate(updateHash=true){
     const pat=eg.createPattern(tileCanvas,"repeat"); eg.fillStyle=pat; eg.fillRect(0,0,W,H);
     VY.app._lastTile=tileCanvas; VY.app._lastModel=tileModel;
     piece={cols:pcols, rows:prows, bg:P.bg,
-           rasterAtCell:(cl)=>VY.render.rasterSeamless(tileModel,pcols,prows,cl,state.style,seedNum,P.bg)};
+           rasterTile:(dCell,tx,ty)=>VY.render.rasterSeamlessTile(tileModel,dCell,tx,ty,state.style,seedNum,P.bg,256)};
     document.getElementById("dims").textContent=`${W}×${H}px · seamless tile ${tileModel.cols}×${tileModel.rows}`;
   }else if(state.mode==="wallpaper"){
     const [, ,W,H]=RES.find(r=>r[0]===state.res);
@@ -111,7 +111,7 @@ function generate(updateHash=true){
     VY.render.setCtx(eg); VY.render.drawGrid(model,model.cell,ox,oy,state.style,seedNum); VY.render.setCtx(VY.ctx);
     VY.app._lastModel=model;
     piece={cols:model.cols, rows:model.rows, bg:P.bg,
-           rasterAtCell:(cl)=>VY.render.buildTileCanvas(model,cl,state.style,seedNum)};
+           rasterTile:(dCell,tx,ty)=>VY.render.rasterTile(model,dCell,tx,ty,state.style,seedNum,P.bg,256)};
     document.getElementById("dims").textContent=`${W}×${H}px · ${model.cols}×${model.rows} stitches`;
   }else{
     const model=VY.gen.composePanel(state.shape);
@@ -122,7 +122,7 @@ function generate(updateHash=true){
     VY.render.setCtx(eg); VY.render.drawGrid(model,cell,0,0,state.style,seedNum); VY.render.setCtx(VY.ctx);
     VY.app._lastModel=model;
     piece={cols:model.cols, rows:model.rows, bg:P.bg,
-           rasterAtCell:(cl)=>VY.render.buildTileCanvas(model,cl,state.style,seedNum)};
+           rasterTile:(dCell,tx,ty)=>VY.render.rasterTile(model,dCell,tx,ty,state.style,seedNum,P.bg,256)};
     document.getElementById("dims").textContent=`${model.cols}×${model.rows} stitches · cell ${cell}px`;
   }
   VY.app._exportCanvas=exp; VY.app._piece=piece;

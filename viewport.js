@@ -59,49 +59,49 @@ window.VY = window.VY || {};
   let curDeviceCell=0;
   function maxCellFor(){ if(!PIECE) return 9999; return Math.max(1, Math.floor(16000/Math.max(PIECE.cols,PIECE.rows))); }
   function stageSize(){ const s=document.querySelector(".stage"); return [s.clientWidth, s.clientHeight]; }
-  function applyTransform(){ if(!rasterCanvas) return; const [W,H]=stageSize(); const t=transformFor(VP,W,H);
-    const shownCell=curDeviceCell/DPR; const k=t.cell/shownCell;
-    rasterCanvas.style.transform=`translate(${t.tx}px,${t.ty}px) scale(${t.s*k})`; updateHud(); }
-  let cache=new Map(); const CACHE_MAX=6;
-  function rasterFor(cell){
-    if(cache.has(cell)){ const c=cache.get(cell); cache.delete(cell); cache.set(cell,c); return c; }
-    const c=PIECE.rasterAtCell(cell);
-    cache.set(cell,c); while(cache.size>CACHE_MAX){ cache.delete(cache.keys().next().value); }
-    return c;
+  function applyTransform(){ if(!rasterCanvas||!VP) return; const [W,H]=stageSize();
+    const {S,Tx,Ty}=residualTransform(VP, renderCell, W, H);
+    rasterCanvas.style.transform=`translate(${Tx}px,${Ty}px) scale(${S})`; updateHud(); }
+  const TILE=256, OVER=256; let cache=new Map(); const CACHE_MAX=64; let renderCell=0;
+  function tileFor(dCell,tx,ty){ const k=dCell+":"+tx+":"+ty;
+    if(cache.has(k)){ const c=cache.get(k); cache.delete(k); cache.set(k,c); return c; }
+    const c=PIECE.rasterTile(dCell,tx,ty);
+    cache.set(k,c); while(cache.size>CACHE_MAX){ cache.delete(cache.keys().next().value); } return c;
   }
-  function reraster(){
+  // paint the visible tiles (+overscan) into the stage-sized canvas at the view center, using `cell`
+  function retile(cell){
     if(raf){ cancelAnimationFrame(raf); raf=0; }
-    const [W,H]=stageSize(); const t=transformFor(VP,W,H);
-    const dCell=Math.min(Math.round(t.cell*DPR), maxCellFor());
-    const c=rasterFor(dCell); rasterCanvas=VY.cv;
-    VY.cv.width=c.width; VY.cv.height=c.height; VY.ctx.setTransform(1,0,0,1,0,0);
-    VY.ctx.clearRect(0,0,c.width,c.height); VY.ctx.drawImage(c,0,0);
-    VY.cv.style.width=(c.width/DPR)+"px"; VY.cv.style.height=(c.height/DPR)+"px";
-    curDeviceCell=dCell; applyTransform();
+    const [W,H]=stageSize(); renderCell=cell; const dCell=Math.round(cell*DPR);
+    const bw=Math.round(W*DPR), bh=Math.round(H*DPR);
+    if(VY.cv.width!==bw||VY.cv.height!==bh){ VY.cv.width=bw; VY.cv.height=bh; }
+    VY.cv.style.width=W+"px"; VY.cv.style.height=H+"px";
+    VY.ctx.setTransform(1,0,0,1,0,0); VY.ctx.clearRect(0,0,bw,bh);
+    const {tx0,tx1,ty0,ty1}=tilesFor(VP.cx,VP.cy,W,H,dCell,DPR,TILE,OVER);
+    for(let ty=ty0;ty<=ty1;ty++) for(let tx=tx0;tx<=tx1;tx++){
+      const d=tileDest(tx,ty,VP.cx,VP.cy,W,H,dCell,DPR,TILE);
+      VY.ctx.drawImage(tileFor(dCell,tx,ty), Math.round(d.x), Math.round(d.y));
+    }
+    rasterCanvas=VY.cv; curDeviceCell=dCell; applyTransform();
   }
   function attach(piece, restoreView){
-    cache=new Map();
-    PIECE=piece; const [W,H]=stageSize();
+    cache=new Map(); PIECE=piece; const [W,H]=stageSize();
     VP = restoreView ? clampView({...restoreView, fitZoom:fitView(piece,W,H).fitZoom}, piece, W,H)
                      : fitView(piece, W, H);
-    reraster();
+    retile(transformFor(VP,W,H).cell);
   }
   function getView(){ return VP?{cx:VP.cx,cy:VP.cy,zoom:VP.zoom}:null; }
   function isFit(){ if(!PIECE||!VP) return true; const [W,H]=stageSize(); const f=fitView(PIECE,W,H);
     return Math.abs(VP.zoom-f.zoom)<1e-3 && Math.abs(VP.cx-f.cx)<1e-3 && Math.abs(VP.cy-f.cy)<1e-3; }
-  function fit(){ if(!PIECE) return; const [W,H]=stageSize(); VP=fitView(PIECE,W,H); reraster();
+  function fit(){ if(!PIECE) return; const [W,H]=stageSize(); VP=fitView(PIECE,W,H); retile(transformFor(VP,W,H).cell);
     if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), true); }
   function updateHud(){ const el=document.getElementById("vpZoom"); if(el&&VP) el.textContent=Math.round(VP.zoom/(VP.fitZoom||VP.zoom)*100)+"%"; }
 
   let raf=0, settleT=0;
-  function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; applyTransform(); }); }
+  function schedule(){ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; retile(renderCell); }); }
   function settle(){ clearTimeout(settleT); settleT=setTimeout(()=>{ const [W,H]=stageSize();
-    const want=Math.min(Math.round(transformFor(VP,W,H).cell*DPR), maxCellFor());
-    if(want!==curDeviceCell) reraster(); else applyTransform();
+    retile(transformFor(VP,W,H).cell);
     if(VY.viewport.onSettle) VY.viewport.onSettle(getView(), isFit()); }, 130); }
-  function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H);
-    const want=Math.min(Math.round(transformFor(VP,W,H).cell*DPR), maxCellFor());
-    if(want!==curDeviceCell){ reraster(); } else { schedule(); } settle(); }
+  function liveCommit(){ const [W,H]=stageSize(); VP=clampView(VP,PIECE,W,H); schedule(); settle(); }
   function init(){
     const stage=document.querySelector(".stage");
     stage.addEventListener("wheel",(e)=>{ if(!PIECE) return; e.preventDefault();
