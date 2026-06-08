@@ -179,7 +179,7 @@ document.getElementById("variety").onchange=()=>{resetView();generate();};
 document.getElementById("tradition").oninput=e=>{state.tradition=+e.target.value;document.getElementById("trVal").textContent=state.tradition+"%";};
 document.getElementById("tradition").onchange=()=>{resetView();generate();};
 document.getElementById("seed").onchange=e=>{resetView();state.seed=e.target.value.trim()||"vyshyvanka";generate();};
-document.getElementById("bgColor").oninput=e=>{ state.bgColor=e.target.value; generate(); };
+document.getElementById("bgColor").onchange=e=>{ state.bgColor=e.target.value; generate(); };
 document.getElementById("resetColors").onclick=()=>{ resetColors(); generate(); };
 document.getElementById("gen").onclick=()=>{resetView();state.lab=null;state.seed=Math.random().toString(36).slice(2,9);syncUI();generate();
   if(!document.querySelector('.acc-sec[data-sec="lab"] .acc-b').classList.contains("hidden")) openLabFromSeed();};
