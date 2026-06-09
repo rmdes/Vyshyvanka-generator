@@ -363,28 +363,7 @@ function composeWallpaper(W,H,layout,scaleKey){
   const cols=Math.round(W/cell),rows=Math.round(H/cell),grid=newGrid(cols,rows);
   const m=[7,9,9,11,13][dens-1];
 
-  if(layout==="fabric"){
-    const mm=[9,11,13][{small:0,medium:1,large:2}[scaleKey]];
-    const setN=Math.max(1,1+Math.round(v*3));
-    const motifs=[];for(let i=0;i<setN;i++)motifs.push(pickMotif(mm));
-    const latt=pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]);
-    const gap=Math.max(2,Math.round(mm*(0.3+(chance(v)?0.35:0))));
-    const period=mm+gap;
-    const vstep=latt==="diamond"?Math.max(4,Math.round(period*0.55)):period;
-    const useFiller=(dens>=3||v>0.45);
-    const filler=useFiller?makeFiller():null;
-    let row=0;
-    for(let gy=-mm;gy<rows;gy+=vstep,row++){
-      const off=(latt!=="straight"&&row%2)?Math.round(period/2):0;
-      let i=0;
-      for(let gx=-mm+off;gx<cols;gx+=period,i++){
-        const idx=v>0.75?ri(0,setN-1):(row+i)%setN;
-        blit(grid,motifs[idx],gx,gy);
-        if(filler) blit(grid,filler,gx+Math.round(period/2),gy+Math.round(vstep/2));
-      }
-    }
-  }
-  else if(layout==="bordered"){
+  if(layout==="bordered"){
     const margin=Math.max(2,Math.round(rows*0.04)),layers=Math.min(3,1+Math.round(dens/2));
     const top=borderStrip(cols,layers);
     blit(grid,top,0,margin); blit(grid,top,0,rows-margin-top.length);
@@ -402,6 +381,26 @@ function composeWallpaper(W,H,layout,scaleKey){
     const x0=Math.round(cols*0.07);
     blit(grid,ribbon,x0,0);
     if(dens>=3) blit(grid,ribbon,cols-x0-ribW,0);
+  }
+  else if(layout==="diagonal"){
+    const mm=m+2, gap=Math.max(3,Math.round(mm*(0.35+v*0.3))), step=mm+gap, dshift=Math.max(2,Math.round(step/3));
+    let row=0;
+    for(let gy=-mm; gy<rows; gy+=step, row++){
+      const shift=(row*dshift)%step;
+      for(let gx=-mm+shift-step; gx<cols; gx+=step) blit(grid,pickMotif(mm),gx,gy);
+    }
+  }
+  else if(layout==="scattered"){
+    const mm=m+2, gap=Math.max(4,Math.round(mm*0.6)), step=mm+gap, jit=Math.max(1,Math.floor(gap*0.45));
+    for(let gy=2; gy+mm<=rows; gy+=step) for(let gx=2; gx+mm<=cols; gx+=step)
+      blit(grid,pickMotif(mm),gx+ri(-jit,jit),gy+ri(-jit,jit));
+  }
+  else if(layout==="wreath"){
+    const cx=cols/2, cy=rows/2, R=Math.round(Math.min(cols,rows)*0.32), count=Math.max(8,6+dens*2);
+    const big=(Math.round(Math.min(cols,rows)*0.26)|1);
+    blit(grid,makeMotif(big),Math.round(cx-big/2),Math.round(cy-big/2));
+    for(let i=0;i<count;i++){const a=i/count*2*Math.PI;
+      blit(grid,pickMotif(m),Math.round(cx+Math.cos(a)*R-m/2),Math.round(cy+Math.sin(a)*R-m/2));}
   }
   else {
     const big=(Math.round(Math.min(cols,rows)*0.5)|1);
