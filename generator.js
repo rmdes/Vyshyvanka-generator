@@ -340,7 +340,7 @@ function napkinCloth(){
   const P=CFG.P, dens=CFG.dens, mul=SIZEMUL[CFG.panelSize]||1;
   const m=[7,9,9,11,13][dens-1], cm=m+6;                                  // central medallion (larger; m odd -> cm odd)
   const margin=Math.max(3,Math.round(m*0.7));
-  const S=Math.max(cm+2*margin+6, Math.round((cm+2*m+4*margin)*mul));     // square side, scaled, floored
+  const S=Math.max(cm+2*(margin+m)+6, Math.round((cm+2*m+4*margin)*mul));  // square side; floor keeps corners clear of the medallion
   const grid=newGrid(S,S), cA=P.colorBias[0]+1;
   for(let x=0;x<S;x++){grid[1][x]=cA;grid[S-2][x]=cA;} for(let y=0;y<S;y++){grid[y][1]=cA;grid[y][S-2]=cA;}  // inset border frame
   blit(grid, pickMotif(cm), (S-cm)>>1, (S-cm)>>1);                        // central medallion
