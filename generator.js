@@ -329,9 +329,24 @@ function composePanel(shape){
   if(shape==="sleeve"){cols=[31,35,39,43,47][dens-1];const reps=scaleN([3,4,5,6,7][dens-1],1);B();S();for(let i=0;i<reps;i++){M();S();}B();}
   else if(shape==="collar"){cols=scaleN([110,130,150,160,170][dens-1],40);B();S();M();S();B();}
   else if(shape==="rushnyk"){cols=scaleN([45,51,55,61,67][dens-1],24);B();S();M(m);S();M(m+4);S();M(m);S();B();}
+  else if(shape==="cuff"){cols=[27,31,35,39,43][dens-1];const reps=scaleN(1,1);B();S();for(let i=0;i<reps;i++){M();S();}B();}
+  else if(shape==="runner"){cols=scaleN([160,190,220,250,280][dens-1],80);B();S();M();S();M();S();B();}
+  else if(shape==="napkin") return napkinCloth();
   else return sampler();
   const rows=spec.reduce((s,b)=>s+b.length,0),grid=newGrid(cols,rows);let y=0;for(const b of spec){blit(grid,b,0,y);y+=b.length;}
   return {grid,cols,rows,palette:P};
+}
+function napkinCloth(){
+  const P=CFG.P, dens=CFG.dens, mul=SIZEMUL[CFG.panelSize]||1;
+  const m=[7,9,9,11,13][dens-1], cm=m+6;                                  // central medallion (larger; m odd -> cm odd)
+  const margin=Math.max(3,Math.round(m*0.7));
+  const S=Math.max(cm+2*margin+6, Math.round((cm+2*m+4*margin)*mul));     // square side, scaled, floored
+  const grid=newGrid(S,S), cA=P.colorBias[0]+1;
+  for(let x=0;x<S;x++){grid[1][x]=cA;grid[S-2][x]=cA;} for(let y=0;y<S;y++){grid[y][1]=cA;grid[y][S-2]=cA;}  // inset border frame
+  blit(grid, pickMotif(cm), (S-cm)>>1, (S-cm)>>1);                        // central medallion
+  const co=pickMotif(m), off=margin+1;                                    // corner accents (same motif, 4 corners)
+  blit(grid,co,off,off); blit(grid,co,S-off-m,off); blit(grid,co,off,S-off-m); blit(grid,co,S-off-m,S-off-m);
+  return {grid,cols:S,rows:S,palette:P};
 }
 function sampler(){
   const P=CFG.P, mul=SIZEMUL[CFG.panelSize]||1, G=Math.max(2,Math.round([3,3,4,4,5][CFG.dens-1]*mul)),m=11,gap=2,cell=m+gap,cols=G*cell+gap,rows=G*cell+gap,grid=newGrid(cols,rows);
