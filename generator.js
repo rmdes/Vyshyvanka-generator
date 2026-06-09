@@ -224,7 +224,7 @@ function varyGenome(lab, wild){
   }));
   return { sym:lab.sym||CFG.symmetry, layers,
            levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot",
-           silhouette:lab.silhouette||'auto', border:lab.border||'off' };
+           silhouette:lab.silhouette||CFG.silhouette||'auto', border:lab.border||CFG.border||'off' };
 }
 function varyGenomeFrom(rng, lab, wild){
   const j=(amt)=>(rng()*2-1)*amt*wild;
@@ -262,7 +262,7 @@ function cellMotif(latX, latY, cfg){
   if(c.has(key)){ const g=c.get(key); c.delete(key); c.set(key,g); return g; }
   const rng=mulberry32(hashStr(cfg.seed+"|B|"+latX+"|"+latY)), aim=cfg.aim;
   let g;
-  if(cfg.lab){ g=makeFieldMotif(cfg.mm, varyGenomeFrom(rng, cfg.lab, aim.wild)); }
+  if(cfg.lab){ const G=varyGenomeFrom(rng, cfg.lab, aim.wild); G.silhouette=aim.silhouette||'auto'; G.border=aim.border||'off'; g=makeFieldMotif(cfg.mm, G); }
   else {
     const src=pickSource(rng(), aim.tradition, cfg.heroPool.length>0);
     if(src==='hero'){ g=remapHeroP(cfg.P, cfg.heroPool[Math.floor(rng()*cfg.heroPool.length)].grid); }
