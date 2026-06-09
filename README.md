@@ -8,10 +8,10 @@ Open `index.html` in any browser. No build step, no server, works offline.
 
 ## What it does
 
-- **Three modes**: 🖥 **Wallpaper** (seamless fabric, border frame, side runner,
-  medallion), 🧵 **Garment panel** (sleeve, collar, rushnyk, sampler), and 🧭
-  **Explore** — an *infinite, seamless field* of distinct motifs you pan and zoom
-  through endlessly.
+- **Three modes**: 🖥 **Wallpaper** (seamless, border frame, side runner,
+  medallion, diagonal, scattered, wreath), 🧵 **Garment panel** (sleeve, cuff,
+  collar, runner, rushnyk, napkin, sampler — at S/M/L size), and 🧭 **Explore** —
+  an *infinite, seamless field* of distinct motifs you pan and zoom through endlessly.
 - **Explorable everywhere**: every design renders on a pan/zoom viewport with
   level-of-detail tiles — scroll to zoom, drag to pan, `0` to reset. Zoom in to
   individual cross-stitches; zoom out to a sea of motifs.
@@ -29,6 +29,13 @@ Open `index.html` in any browser. No build step, no server, works offline.
   fills each motif; **Variation (Calm ↔ Wild)** sets how far individual motifs
   deviate from the per-generation family (in Explore, how much each cell of the
   infinite plane differs); **Symmetry** chooses the fold (8-fold / 4-fold / Loose).
+- **Motif geometry**: **Silhouette** (auto / circle / square / diamond) sets each
+  field motif's outline; **Border** outlines it. **Arrangement** (straight / brick /
+  diamond), **Spacing**, and **Motif scale** shape how motifs tile the seamless
+  fabric and the Explore field.
+- **🎨 Colour**: any **cloth background** colour, an **editable thread palette**
+  (recolour each thread), and **saved palettes** appliable to any design — a pure
+  recolour layer that never reshuffles the pattern.
 - **🧪 Lab panel**: a collapsible panel for editing the underlying genome
   directly — tune the layers and basis functions that drive the field motifs.
   A pinned genome becomes the theme for the whole design (or the whole infinite plane).
@@ -65,17 +72,14 @@ and `docs/superpowers/` for the per-feature design specs and plans.
 
 ## Recently added
 
-- [x] 🧭 **Explore** mode — an infinite, roamable, seamless field generated
-      position-addressably from world coordinates (every tile is deterministic)
+- [x] **🎨 Colour control** — any cloth-background colour, an editable thread palette, saved reusable palettes
+- [x] **Shape control** — motif **silhouette** + **border**; lattice **arrangement** + **spacing**; **panel size** + new shapes (cuff, runner, napkin); new wallpaper layouts (diagonal, scattered, wreath)
+- [x] **Respectful regional framing** — formal-trait names + "inspired by", tendency-worded notes, source links
+- [x] 🧭 **Explore** mode — an infinite, roamable, seamless field generated position-addressably (every tile deterministic)
 - [x] Pan/zoom/level-of-detail **explorable viewport** for every mode
-- [x] Generative "field-function" motif engine (math layers over symmetry-folded coordinates)
-- [x] **Tradition ↔ Invention** dial blending hero/archetype motifs with the generative fields
-- [x] Relabeled axes: **Detail (Minimal ↔ Ornate)** and **Variation (Calm ↔ Wild)**
-- [x] **Symmetry** control (8-fold / 4-fold / Loose)
+- [x] Generative "field-function" motif engine + **Tradition ↔ Invention** dial blending it with hand-charted "hero" motifs
 - [x] **🧪 Lab** panel for editing the genome directly
-- [x] Hand-authored regional "hero" motifs (biggest quality jump vs. the generic procedural look)
-- [x] Printable counted-stitch chart (numbered grid + thread legend)
-- [x] "Favorites" / lock-a-design affordance + undo
+- [x] Printable counted-stitch chart (numbered grid + thread legend); favorites + undo
 
 ## Ideas / backlog
 
