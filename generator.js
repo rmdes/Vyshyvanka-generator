@@ -11,7 +11,7 @@ const chance=(p)=>RNG()<p;
 const shuffle=(a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* global generation config (set per generate) */
-const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:'',lattice:'auto',spacing:'normal',panelSize:'medium'};
+const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:'',lattice:'auto',spacing:'normal',panelSize:'medium',silhouette:'auto',border:'off'};
 
 /* ===================== grid helpers ===================== */
 const newGrid=(w,h)=>Array.from({length:h},()=>new Int8Array(w));
@@ -120,13 +120,22 @@ function applyCenter(g, c, style, col){
   g[c][c]=col; if(g[c-1])g[c-1][c]=col; if(g[c+1])g[c+1][c]=col;
   if(c-1>=0)g[c][c-1]=col; if(c+1<g.length)g[c][c+1]=col;
 }
-// genome = { sym:'d4'|'d2'|'loose', layers:[{coord,wave,freq,phase,weight,slot}], levels:Int, centerStyle:str }
+function silhouetteInside(sil, sym, dx, dy, R){
+  const E=R+0.5, ax=Math.abs(dx), ay=Math.abs(dy);
+  switch(sil){
+    case 'circle':  return Math.hypot(dx,dy) <= E;
+    case 'square':  return ax<=E && ay<=E;
+    case 'diamond': return (ax+ay) <= E;
+    default:        return sym==='loose' ? (ax<=E && ay<=E) : (Math.hypot(dx,dy) <= E);  // auto = current
+  }
+}
+// genome = { sym:'d4'|'d2'|'loose', layers:[{coord,wave,freq,phase,weight,slot}], levels:Int, centerStyle:str, silhouette:str, border:str }
 function makeFieldMotif(m, G){
-  const g=newGrid(m,m), c=(m-1)/2, R=Math.max(1,c);
+  const g=newGrid(m,m), c=(m-1)/2, R=Math.max(1,c), sil=G.silhouette||'auto';
   for(let y=0;y<m;y++)for(let x=0;x<m;x++){
     let ax=Math.abs(x-c), ay=Math.abs(y-c);
     if(G.sym==='d4' && ax<ay){ const t=ax; ax=ay; ay=t; }   // fold diagonal -> 8-fold
-    if(G.sym!=='loose' && Math.hypot(x-c,y-c) > R+0.5) continue;   // d4/d2 clip to a disc; loose fills the square
+    if(!silhouetteInside(sil, G.sym, x-c, y-c, R)) continue;
     let F=0, wsum=0;
     for(const L of G.layers){
       F += L.weight*fieldWave(L.wave, fieldCoord(L.coord,ax,ay,R)*L.freq + L.phase);
@@ -140,6 +149,14 @@ function makeFieldMotif(m, G){
     }
   }
   applyCenter(g, c, G.centerStyle, G.layers[0].slot);
+  if(G.border==="on"){
+    const bc=G.layers[0].slot;
+    for(let y=0;y<m;y++)for(let x=0;x<m;x++){
+      if(!silhouetteInside(sil,G.sym,x-c,y-c,R)) continue;
+      if(!silhouetteInside(sil,G.sym,x+1-c,y-c,R)||!silhouetteInside(sil,G.sym,x-1-c,y-c,R)||
+         !silhouetteInside(sil,G.sym,x-c,y+1-c,R)||!silhouetteInside(sil,G.sym,x-c,y-1-c,R)) g[y][x]=bc;
+    }
+  }
   // non-empty floor: never return a fully blank motif
   let any=false; for(const r of g){ for(const v of r){ if(v){any=true;break;} } if(any)break; }
   if(!any) g[c][c]=G.layers[0].slot;
@@ -167,7 +184,7 @@ function sampleGenomeFrom(rng, P, aim){
   }
   const levels = 2 + Math.round(ornate*0.8 + tr*3);
   const centerStyle = rpick(['dot','cross','ring','none']);
-  return { sym: aim.symmetry||'d4', layers, levels, centerStyle };
+  return { sym: aim.symmetry||'d4', layers, levels, centerStyle, silhouette: aim.silhouette||'auto', border: aim.border||'off' };
 }
 function sampleGenome(P, aim){ return sampleGenomeFrom(RNG, P, aim); }
 
@@ -193,7 +210,7 @@ function genomeForCFG(m){
   // A pinned Lab genome is a THEME: each motif DEVIATES from it (scaled by Variation/Calm<->Wild),
   // so the slots form a coherent family — identical at Calm, a varied family toward Wild.
   if(CFG.lab) return varyGenome(CFG.lab, CFG.variety);
-  return sampleGenome(CFG.P, {ornate:CFG.dens, wild:CFG.variety, tradition:CFG.tradition, symmetry:CFG.symmetry});
+  return sampleGenome(CFG.P, {ornate:CFG.dens, wild:CFG.variety, tradition:CFG.tradition, symmetry:CFG.symmetry, silhouette:CFG.silhouette, border:CFG.border});
 }
 // per-motif variation around a pinned genome; keeps coord/wave/colour (the family's character),
 // jitters the geometry (freq/phase/weight/levels) by an amount scaled by `wild` (0 = identical).
@@ -206,7 +223,8 @@ function varyGenome(lab, wild){
     weight:Math.max(0.1, L.weight*(1+j(0.5)))
   }));
   return { sym:lab.sym||CFG.symmetry, layers,
-           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot" };
+           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot",
+           silhouette:lab.silhouette||'auto', border:lab.border||'off' };
 }
 function varyGenomeFrom(rng, lab, wild){
   const j=(amt)=>(rng()*2-1)*amt*wild;
@@ -217,7 +235,8 @@ function varyGenomeFrom(rng, lab, wild){
     weight:Math.max(0.1, L.weight*(1+j(0.5)))
   }));
   return { sym:lab.sym||'d4', layers,
-           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot" };
+           levels:Math.max(2, Math.round((lab.levels||4) + j(1.5))), centerStyle:lab.centerStyle||"dot",
+           silhouette:lab.silhouette||'auto', border:lab.border||'off' };
 }
 function pickMotif(m){
   const tr=CFG.tradition, pool=heroForRegion(CFG.region);
