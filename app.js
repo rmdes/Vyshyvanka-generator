@@ -7,6 +7,8 @@ const LAYOUTS=[["fabric","Seamless"],["bordered","Border frame"],["runner","Side
 const BGS=[["linen","Linen"],["charcoal","Charcoal"],["black","Black"],["indigo","Indigo"]];
 const SCALES=[["small","S"],["medium","M"],["large","L"]];
 const SYMS=[["d4","8-fold"],["d2","4-fold"],["loose","Loose"]];
+const LATTICES=[["auto","Auto"],["straight","Straight"],["brick","Brick"],["diamond","Diamond"]];
+const SPACINGS=[["tight","Tight"],["normal","Normal"],["airy","Airy"]];
 const dpr=window.devicePixelRatio||1;
 const RES=[
   ["screen",`This screen (${Math.round(screen.width*dpr)}×${Math.round(screen.height*dpr)})`,Math.round(screen.width*dpr),Math.round(screen.height*dpr)],
@@ -30,7 +32,7 @@ for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
 function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();if(key==="bg")resetColors();state[key]=v;syncUI();generate();};el.appendChild(b);});}
-buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");
+buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");buildSeg("latticeSeg",LATTICES,"lattice");buildSeg("spacingSeg",SPACINGS,"spacing");
 
 function syncUI(){
   regionSel.value=state.region;
@@ -49,15 +51,18 @@ function syncUI(){
   document.getElementById("tradition").setAttribute("aria-valuetext",`Tradition to invention ${state.tradition} percent`);
   document.getElementById("seed").value=state.seed;
   resSel.value=state.res;
-  const wall=state.mode==="wallpaper";
+  const wall=state.mode==="wallpaper", explore=state.mode==="explore";
+  const tiling=(wall&&state.layout==="fabric")||explore;   // seamless tile + Explore
   document.getElementById("wallControls").classList.toggle("hidden",!wall);
+  document.getElementById("scaleGroup").classList.toggle("hidden",!(wall||explore));
+  document.getElementById("latticeGroup").classList.toggle("hidden",!tiling);
   document.getElementById("panelControls").classList.toggle("hidden",state.mode!=="panel");
-  document.querySelector('.acc-sec[data-sec="output"]').classList.toggle("hidden",state.mode==="explore");
+  document.querySelector('.acc-sec[data-sec="output"]').classList.toggle("hidden",false);
   document.getElementById("hint").textContent="scroll = zoom · drag = pan · 0 = fit";
   const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
   [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
   [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
-  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry"};
+  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry",latticeSeg:"lattice",spacingSeg:"spacing"};
   for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
   const name=VY.REGIONS[state.region].formal;
   document.getElementById("title").textContent =
