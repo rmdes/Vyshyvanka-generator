@@ -11,7 +11,7 @@ const chance=(p)=>RNG()<p;
 const shuffle=(a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* global generation config (set per generate) */
-const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:'',lattice:'auto',spacing:'normal'};
+const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:'',lattice:'auto',spacing:'normal',panelSize:'medium'};
 
 /* ===================== grid helpers ===================== */
 const newGrid=(w,h)=>Array.from({length:h},()=>new Int8Array(w));
@@ -320,18 +320,21 @@ function borderStrip(cols,layers){
 }
 
 /* ===================== PANEL composition ===================== */
+const SIZEMUL={small:0.6, medium:1.0, large:1.55};
 function composePanel(shape){
-  const P=CFG.P, dens=CFG.dens, m=[7,9,9,11,13][dens-1];let cols,spec=[];
+  const P=CFG.P, dens=CFG.dens, m=[7,9,9,11,13][dens-1];
+  const mul=SIZEMUL[CFG.panelSize]||1, scaleN=(base,min)=>Math.max(min, Math.round(base*mul));
+  let cols,spec=[];
   const B=()=>spec.push(borderBand(cols)),S=()=>spec.push(separator(cols)),M=(mm)=>spec.push(mainBand(cols,mm||m));
-  if(shape==="sleeve"){cols=[31,35,39,43,47][dens-1];const reps=[3,4,5,6,7][dens-1];B();S();for(let i=0;i<reps;i++){M();S();}B();}
-  else if(shape==="collar"){cols=[110,130,150,160,170][dens-1];B();S();M();S();B();}
-  else if(shape==="rushnyk"){cols=[45,51,55,61,67][dens-1];B();S();M(m);S();M(m+4);S();M(m);S();B();}
+  if(shape==="sleeve"){cols=[31,35,39,43,47][dens-1];const reps=scaleN([3,4,5,6,7][dens-1],1);B();S();for(let i=0;i<reps;i++){M();S();}B();}
+  else if(shape==="collar"){cols=scaleN([110,130,150,160,170][dens-1],40);B();S();M();S();B();}
+  else if(shape==="rushnyk"){cols=scaleN([45,51,55,61,67][dens-1],24);B();S();M(m);S();M(m+4);S();M(m);S();B();}
   else return sampler();
   const rows=spec.reduce((s,b)=>s+b.length,0),grid=newGrid(cols,rows);let y=0;for(const b of spec){blit(grid,b,0,y);y+=b.length;}
   return {grid,cols,rows,palette:P};
 }
 function sampler(){
-  const P=CFG.P, G=[3,3,4,4,5][CFG.dens-1],m=11,gap=2,cell=m+gap,cols=G*cell+gap,rows=G*cell+gap,grid=newGrid(cols,rows);
+  const P=CFG.P, mul=SIZEMUL[CFG.panelSize]||1, G=Math.max(2,Math.round([3,3,4,4,5][CFG.dens-1]*mul)),m=11,gap=2,cell=m+gap,cols=G*cell+gap,rows=G*cell+gap,grid=newGrid(cols,rows);
   for(let r=0;r<G;r++)for(let c=0;c<G;c++)blit(grid,pickMotif(m),gap+c*cell,gap+r*cell);
   const cA=P.colorBias[0]+1;for(let x=0;x<cols;x++){grid[0][x]=cA;grid[rows-1][x]=cA;}for(let y=0;y<rows;y++){grid[y][0]=cA;grid[y][cols-1]=cA;}
   return {grid,cols,rows,palette:P};
