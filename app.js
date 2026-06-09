@@ -10,6 +10,8 @@ const SYMS=[["d4","8-fold"],["d2","4-fold"],["loose","Loose"]];
 const PANELSIZES=[["small","S"],["medium","M"],["large","L"]];
 const LATTICES=[["auto","Auto"],["straight","Straight"],["brick","Brick"],["diamond","Diamond"]];
 const SPACINGS=[["tight","Tight"],["normal","Normal"],["airy","Airy"]];
+const SILHOUETTES=[["auto","Auto"],["circle","Circle"],["square","Square"],["diamond","Diamond"]];
+const BORDERS=[["off","No border"],["on","Border"]];
 const dpr=window.devicePixelRatio||1;
 const RES=[
   ["screen",`This screen (${Math.round(screen.width*dpr)}×${Math.round(screen.height*dpr)})`,Math.round(screen.width*dpr),Math.round(screen.height*dpr)],
@@ -24,7 +26,7 @@ const RES=[
 const DEFAULTS={mode:"wallpaper",region:"hutsul",complexity:3,variety:45,style:"x",seed:"vyshyvanka",
              res:"screen",layout:"fabric",bg:"charcoal",scale:"medium",shape:"sleeve",
              tradition:45,symmetry:"d4",lab:null,viewX:null,viewY:null,viewZoom:null,
-             bgColor:null,threadCols:[],lattice:"auto",spacing:"normal",panelSize:"medium"};
+             bgColor:null,threadCols:[],lattice:"auto",spacing:"normal",panelSize:"medium",silhouette:"auto",border:"off"};
 const state={...DEFAULTS};
 state.threadCols=[];
 
@@ -33,7 +35,7 @@ for(const k in VY.REGIONS){const o=document.createElement("option");o.value=k;o.
 const resSel=document.getElementById("res");
 RES.forEach(([v,lbl])=>{const o=document.createElement("option");o.value=v;o.textContent=lbl;resSel.appendChild(o);});
 function buildSeg(id,items,key){const el=document.getElementById(id);items.forEach(([v,lbl])=>{const b=document.createElement("button");b.dataset.v=v;b.textContent=lbl;b.onclick=()=>{resetView();if(key==="bg")resetColors();state[key]=v;syncUI();generate();};el.appendChild(b);});}
-buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");buildSeg("latticeSeg",LATTICES,"lattice");buildSeg("spacingSeg",SPACINGS,"spacing");buildSeg("panelSizeSeg",PANELSIZES,"panelSize");
+buildSeg("shapeSeg",SHAPES,"shape");buildSeg("layoutSeg",LAYOUTS,"layout");buildSeg("bgSeg",BGS,"bg");buildSeg("scaleSeg",SCALES,"scale");buildSeg("symSeg",SYMS,"symmetry");buildSeg("latticeSeg",LATTICES,"lattice");buildSeg("spacingSeg",SPACINGS,"spacing");buildSeg("panelSizeSeg",PANELSIZES,"panelSize");buildSeg("silhouetteSeg",SILHOUETTES,"silhouette");buildSeg("borderSeg",BORDERS,"border");
 
 function syncUI(){
   regionSel.value=state.region;
@@ -63,7 +65,7 @@ function syncUI(){
   const setOn=(b,isOn)=>{b.classList.toggle("on",isOn);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(isOn));};
   [...document.getElementById("modeSeg").children].forEach(b=>setOn(b,b.dataset.mode===state.mode));
   [...document.getElementById("styleSeg").children].forEach(b=>setOn(b,b.dataset.style===state.style));
-  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry",latticeSeg:"lattice",spacingSeg:"spacing",panelSizeSeg:"panelSize"};
+  const segKey={shapeSeg:"shape",layoutSeg:"layout",bgSeg:"bg",scaleSeg:"scale",symSeg:"symmetry",latticeSeg:"lattice",spacingSeg:"spacing",panelSizeSeg:"panelSize",silhouetteSeg:"silhouette",borderSeg:"border"};
   for(const id in segKey)[...document.getElementById(id).children].forEach(b=>setOn(b,b.dataset.v===state[segKey[id]]));
   const name=VY.REGIONS[state.region].formal;
   document.getElementById("title").textContent =
@@ -86,7 +88,8 @@ function generate(updateHash=true){
   // and shared via the URL hash, so editing the Lab changes ONLY field-motif geometry, not the whole canvas.
   VY.gen.setSeed(`${state.seed}|${state.region}|${state.mode}|${state.complexity}|${state.variety}|${state.layout}|${state.shape}|${state.bg}|${state.scale}|${state.res}|${state.tradition}|${state.symmetry}`
     + (state.lattice!=="auto"?"|lat"+state.lattice:"") + (state.spacing!=="normal"?"|sp"+state.spacing:"")
-    + (state.mode==="panel"&&state.panelSize!=="medium"?"|psz"+state.panelSize:""));
+    + (state.mode==="panel"&&state.panelSize!=="medium"?"|psz"+state.panelSize:"")
+    + (state.silhouette!=="auto"?"|sil"+state.silhouette:"") + (state.border==="on"?"|bd":""));
   let P=VY.applyBg(VY.REGIONS[state.region],state.bg);   // all modes honour the cloth background (linen returns the region palette unchanged)
   P=VY.applyColors(P, state.bgColor, state.threadCols);
   VY.app._palette=P;
@@ -101,6 +104,8 @@ function generate(updateHash=true){
     lattice:state.lattice,
     spacing:state.spacing,
     panelSize:state.panelSize,
+    silhouette:state.silhouette,
+    border:state.border,
     lab:state.lab,
   });
   const seedNum = VY.gen.hashStr(state.seed);
@@ -134,7 +139,7 @@ function generate(updateHash=true){
   }else if(state.mode==="explore"){
     const mm=[9,11,13][{small:0,medium:1,large:2}[state.scale]];   // Explore motif size follows the Scale control
     const cfg=VY.gen.buildFabricConfig(P,
-      {ornate:dens, wild:state.variety/100, tradition:state.tradition/100, symmetry:state.symmetry},
+      {ornate:dens, wild:state.variety/100, tradition:state.tradition/100, symmetry:state.symmetry, silhouette:state.silhouette, border:state.border},
       state.lab, mm, state.seed);
     exp=null;                       // export = current view (#png falls back to VY.cv)
     VY.app._lastModel=null; VY.app._lastTile=null;
@@ -162,7 +167,7 @@ function generate(updateHash=true){
 }
 
 /* ---- shareable URL ---- */
-function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);if(state.bgColor)o.bgc=state.bgColor.replace(/^#/,"");if(state.threadCols&&state.threadCols.some(Boolean))o.thr=state.threadCols.map(c=>c?c.replace(/^#/,""):"").join(",");if(state.lattice!=="auto")o.lat=state.lattice;if(state.spacing!=="normal")o.sp=state.spacing;if(state.panelSize!=="medium")o.psz=state.panelSize;if(state.viewZoom){o.vox=state.viewX;o.voy=state.viewY;o.voz=state.viewZoom;}const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
+function writeHash(){const o={m:state.mode,r:state.region,c:state.complexity,vy:state.variety,st:state.style,seed:state.seed,res:state.res,lay:state.layout,bg:state.bg,sc:state.scale,sh:state.shape,tr:state.tradition,sym:state.symmetry};if(state.lab)o.lab=JSON.stringify(state.lab);if(state.bgColor)o.bgc=state.bgColor.replace(/^#/,"");if(state.threadCols&&state.threadCols.some(Boolean))o.thr=state.threadCols.map(c=>c?c.replace(/^#/,""):"").join(",");if(state.lattice!=="auto")o.lat=state.lattice;if(state.spacing!=="normal")o.sp=state.spacing;if(state.panelSize!=="medium")o.psz=state.panelSize;if(state.silhouette!=="auto")o.sil=state.silhouette;if(state.border==="on")o.bd=1;if(state.viewZoom){o.vox=state.viewX;o.voy=state.viewY;o.voz=state.viewZoom;}const p=new URLSearchParams(o);history.replaceState(null,"","#"+p.toString());}
 function readHash(){if(!location.hash)return;const p=new URLSearchParams(location.hash.slice(1));const g=(k,d)=>p.get(k)??d;
   state.mode=g("m",state.mode);if(VY.REGIONS[g("r","")])state.region=g("r");const ci=+g("c",state.complexity); if(Number.isFinite(ci)) state.complexity=Math.max(1,Math.min(5,Math.round(ci)));
   const vi=+g("vy",state.variety); if(Number.isFinite(vi)) state.variety=Math.max(0,Math.min(100,Math.round(vi)));state.style=g("st",state.style);state.seed=g("seed",state.seed);state.res=g("res",state.res);
@@ -176,6 +181,8 @@ function readHash(){if(!location.hash)return;const p=new URLSearchParams(locatio
   const _lt=g("lat",""); if(["straight","brick","diamond"].includes(_lt)) state.lattice=_lt;
   const _sp=g("sp",""); if(["tight","airy","normal"].includes(_sp)) state.spacing=_sp;
   const _ps=g("psz",""); if(["small","medium","large"].includes(_ps)) state.panelSize=_ps;
+  const _si=g("sil",""); if(["circle","square","diamond"].includes(_si)) state.silhouette=_si;
+  if(g("bd","")==="1") state.border="on";
   const vox=+g("vox","x"),voy=+g("voy","x"),voz=+g("voz","x");
   if(Number.isFinite(vox)&&Number.isFinite(voy)&&Number.isFinite(voz)&&voz>0){ state.viewX=vox;state.viewY=voy;state.viewZoom=voz; }}
 
