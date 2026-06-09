@@ -231,8 +231,9 @@ function pickMotif(m){
 /* ===================== INFINITE FABRIC (Pillar B) ===================== */
 // One coherent infinite lattice of self-contained motifs, generated per-coordinate.
 function buildFabricConfig(P, aim, lab, mm, seed){
-  const gap=Math.max(2, Math.round(mm*0.35)), period=mm+gap;
-  return { P, aim, lab:lab||null, mm, gap, period,
+  const gap=Math.max(2, Math.round(mm*(SPACING[CFG.spacing]||0.35))), period=mm+gap;
+  const lattice=(CFG.lattice && CFG.lattice!=="auto") ? CFG.lattice : "straight";
+  return { P, aim, lab:lab||null, mm, gap, period, lattice,
            heroPool: heroForRegion(CFG.region), seed,
            cacheMax: 1024, _cache: new Map() };
 }
@@ -254,13 +255,15 @@ function cellMotif(latX, latY, cfg){
 
 // build a {grid,cols,rows,palette} window of the infinite plane over world-stitch [wx0,wx0+wcols)×[wy0,wy0+wrows)
 function composeInfiniteWindow(cfg, wx0, wy0, wcols, wrows){
-  const g=newGrid(wcols, wrows), period=cfg.period;
+  const g=newGrid(wcols, wrows), period=cfg.period, h=Math.round(period/2);
   const latX0=Math.floor(wx0/period)-1, latX1=Math.floor((wx0+wcols)/period)+1;
   const latY0=Math.floor(wy0/period)-1, latY1=Math.floor((wy0+wrows)/period)+1;
   for(let latY=latY0;latY<=latY1;latY++) for(let latX=latX0;latX<=latX1;latX++){
     const motif=cellMotif(latX,latY,cfg);
     const pad=Math.floor((period-motif.length)/2);   // center by THIS motif's size (hero motifs are < mm)
-    blit(g, motif, latX*period+pad - wx0, latY*period+pad - wy0);   // blit clips to the window
+    const offX=(cfg.lattice!=="straight" && (latY&1)) ? h : 0;
+    const offY=(cfg.lattice==="diamond" && (latX&1)) ? h : 0;
+    blit(g, motif, latX*period+offX+pad - wx0, latY*period+offY+pad - wy0);   // blit clips to the window
   }
   return { grid:g, cols:wcols, rows:wrows, palette:cfg.P };
 }
