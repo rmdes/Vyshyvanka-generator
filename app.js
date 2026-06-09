@@ -3,7 +3,7 @@ window.VY = window.VY || {};
 
 /* ===================== state + UI ===================== */
 const SHAPES=[["sleeve","Sleeve band"],["cuff","Cuff"],["collar","Collar"],["runner","Runner"],["rushnyk","Rushnyk"],["napkin","Napkin / cloth"],["sampler","Sampler"]];
-const LAYOUTS=[["fabric","Seamless"],["bordered","Border frame"],["runner","Side runner"],["medallion","Medallion"]];
+const LAYOUTS=[["fabric","Seamless"],["bordered","Border frame"],["runner","Side runner"],["medallion","Medallion"],["diagonal","Diagonal"],["scattered","Scattered"],["wreath","Wreath"]];
 const BGS=[["linen","Linen"],["charcoal","Charcoal"],["black","Black"],["indigo","Indigo"]];
 const SCALES=[["small","S"],["medium","M"],["large","L"]];
 const SYMS=[["d4","8-fold"],["d2","4-fold"],["loose","Loose"]];
