@@ -46,6 +46,7 @@
 .swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
 .swatches input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--panel2);cursor:pointer}
 #bgColor{height:32px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer}
+#scaleGroup label:first-of-type,#latticeGroup label:first-of-type{margin-top:10px}
 .pals{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 .pals .pal{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
 .pals .pal .nm{flex:1;cursor:pointer;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
