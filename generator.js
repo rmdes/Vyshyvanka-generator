@@ -392,7 +392,7 @@ function composeWallpaper(W,H,layout,scaleKey){
   }
   else if(layout==="scattered"){
     const mm=m+2, gap=Math.max(4,Math.round(mm*0.6)), step=mm+gap, jit=Math.max(1,Math.floor(gap*0.45));
-    for(let gy=2; gy+mm<=rows; gy+=step) for(let gx=2; gx+mm<=cols; gx+=step)
+    for(let gy=-mm; gy<rows; gy+=step) for(let gx=-mm; gx<cols; gx+=step)
       blit(grid,pickMotif(mm),gx+ri(-jit,jit),gy+ri(-jit,jit));
   }
   else if(layout==="wreath"){
