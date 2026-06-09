@@ -11,7 +11,7 @@ const chance=(p)=>RNG()<p;
 const shuffle=(a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* global generation config (set per generate) */
-const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:''};
+const CFG={variety:0.6,dens:3,tradition:0.2,symmetry:'d4',lab:null,region:'',lattice:'auto',spacing:'normal'};
 
 /* ===================== grid helpers ===================== */
 const newGrid=(w,h)=>Array.from({length:h},()=>new Int8Array(w));
@@ -395,25 +395,29 @@ function composeWallpaper(W,H,layout,scaleKey){
 }
 
 /* ===================== seamless fabric tile ===================== */
+// gap = max(2, round(mm * ratio)); 'normal' reproduces the historic round(mm*0.35)
+const SPACING={tight:0.2, normal:0.35, airy:0.6};
 function composeFabricTile(scaleKey){
   const P=CFG.P, v=CFG.variety;
   const mm=[9,11,13][{small:0,medium:1,large:2}[scaleKey]];
-  const gap=Math.max(2,Math.round(mm*0.35)), period=mm+gap;
-  const latt=pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]);
+  const gap=Math.max(2,Math.round(mm*(SPACING[CFG.spacing]||0.35))), period=mm+gap;
+  const latt=CFG.lattice==="auto" ? pick(v>0.5?["straight","brick","diamond"]:["straight","brick"]) : CFG.lattice;
   const cols=latt==="straight"?period:period*2;
   const rows=latt==="straight"?period:period*2;
   const grid=newGrid(cols,rows);
   const setN=Math.max(1,1+Math.round(v*3)), motifs=[];
   for(let i=0;i<setN;i++) motifs.push(pickMotif(mm));
   const filler=(CFG.dens>=3||v>0.45)?makeFiller():null;
+  const h=Math.round(period/2);
   let row=0;
   for(let gy=0; gy<rows; gy+=period, row++){
-    const off=(latt!=="straight"&&row%2)?Math.round(period/2):0;
+    const offX=(latt!=="straight"&&row%2)?h:0;
     let i=0;
-    for(let gx=off; gx<cols; gx+=period, i++){
+    for(let gx=offX; gx<cols; gx+=period, i++){
+      const offY=(latt==="diamond"&&i%2)?h:0;
       const idx=(row+i)%setN;
-      blitWrap(grid, motifs[idx], gx, gy);
-      if(filler) blitWrap(grid, filler, gx+Math.round(period/2), gy+Math.round(period/2));
+      blitWrap(grid, motifs[idx], gx, gy+offY);
+      if(filler) blitWrap(grid, filler, gx+h, gy+offY+h);
     }
   }
   return {grid,cols,rows,palette:P};
